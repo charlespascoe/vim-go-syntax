@@ -20,22 +20,27 @@ syntax case match
 "   contain complext nested types
 " - No other types should use extend
 
-syntax match goDot /\./
-syntax match goSemicolon /;/
-syntax match goComma /,/
-syntax match goOperator /[-+*/!:=%&^<>|~]\+/
+syntax match   goDot        /\./
+syntax match   goSemicolon  /;/
+syntax match   goComma      /,/
+syntax match   goOperator   /[-+*/!:=%&^<>|~]\+/
 syntax keyword goUnderscore _
 
-" Comments
-syntax keyword goCommentTodo    contained TODO FIXME XXX TBD NOTE
-syntax region goComment start=+//+ end=+$+ contains=goCommentTodo keepend
-syntax region goComment start=+/\*+ end=+\*/+ contains=goCommentTodo fold keepend
-syntax match goGenerateComment +//go:generate.*$+
+" Comments {{{
 
-" Literals
+syntax keyword goCommentTodo     contained TODO FIXME XXX TBD NOTE
+syntax region  goComment         start=+//+ end=+$+ contains=goCommentTodo keepend
+syntax region  goComment         start=+/\*+ end=+\*/+ contains=goCommentTodo fold keepend
+syntax match   goGenerateComment +//go:generate.*$+
+
+" }}} Comments
+
+
+" Literals {{{
+
 " syntax region goString start='"' skip=/\\"/ end='"\|$' contains=goStringEscape,goDoubleQuoteEscape,goStringFormat
-syntax region goString start='"' skip=/\\\\\|\\"/ end='"' oneline contains=goStringEscape,goDoubleQuoteEscape,goStringFormat
-syntax match goStringEscape /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
+syntax region goString             start='"' skip=/\\\\\|\\"/ end='"' oneline contains=goStringEscape,goDoubleQuoteEscape,goStringFormat
+syntax match  goStringEscape       /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
 syntax region goInvalidRuneLiteral start=+'+ skip=+\\'+ end=+'+ oneline keepend contains=goRuneLiteral
 " TODO: Highlight escapes
 syntax match goRuneLiteral /\v'%([^\\]|\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\']))'/ contained
@@ -49,14 +54,22 @@ syntax keyword goBooleanFalse false
 " TODO: float formatting, flags (https://pkg.go.dev/fmt)
 syntax match goStringFormat /\v\%%([%EFGOTUXbcdefgopqstvxf])/ contained
 
-" Simple Blocks
-syntax region goBracketBlock matchgroup=goBrackets start='\[' end='\]' transparent extend
-syntax region goParenBlock matchgroup=goParens start='(' end=')' transparent extend
-syntax region goBraceBlock matchgroup=goBraces start='{' end='}' transparent extend
+" }}} Literals
 
-" Constants and Variables
+
+" Simple Blocks {{{
+
+syntax region goBracketBlock matchgroup=goBrackets start='\[' end='\]' transparent extend
+syntax region goParenBlock   matchgroup=goParens   start='('  end=')'  transparent extend
+syntax region goBraceBlock   matchgroup=goBraces   start='{'  end='}'  transparent extend
+
+" }}}
+
+
+" Constants and Variables {{{
+
 syntax keyword goConstKeyword const skipempty skipwhite nextgroup=goVariableDef,goConstDelcGroup
-syntax keyword goVarKeyword var skipempty skipwhite nextgroup=goVariableDef,goVarDelcGroup
+syntax keyword goVarKeyword   var   skipempty skipwhite nextgroup=goVariableDef,goVarDelcGroup
 " TODO: Actually do something with this
 syntax region goVarDefGroup matchgroup=goVarDefParens start='(' end=')' contained transparent
 " TODO: Actually do something with this
@@ -67,24 +80,32 @@ syntax match goVariableDef /\<\K\k*/ contained skipwhite nextgroup=@goType
 " TODO: Is it possible to reduce duplication here? Remember performance!
 " NOTE: goShortVarDecl currently doesn't work inside one-line functions,
 " e.g func() { a, b := f(); return a }
-syntax match goShortVarDecl /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore
-syntax match goInlineShortVarDecl /\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contained contains=goComma,goUnderscore
+syntax match goShortVarDecl       /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore
+syntax match goInlineShortVarDecl /\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/        contains=goComma,goUnderscore contained
 
-" Packages
+" }}} Constants and Variables
+
+
+" Packages {{{
+
 syntax keyword goPackage package
 syntax keyword goImport import skipwhite nextgroup=goImportItem,goImports
-syntax region goImports matchgroup=goImportParens start='(' end=')' contained contains=goImportItem,goComment
-syntax match goImportItem /\(\([\._]\|\K\k*\)\s\+\)\?"[^"]*"/ contained contains=@NoSpell,goString
+syntax region  goImports matchgroup=goImportParens start='(' end=')' contained contains=goImportItem,goComment
+syntax match   goImportItem /\(\([\._]\|\K\k*\)\s\+\)\?"[^"]*"/ contained contains=@NoSpell,goString
 
-" Types
-syntax match goPointer /*/ contained nextgroup=@goType
+" }}} Packages
+
+
+" Types {{{
+
+syntax match  goPointer /*/ contained nextgroup=@goType
 syntax region goTypeParens start='(' end=')' contained contains=@goType
 
 syntax keyword goTypeKeyword type skipempty skipwhite nextgroup=goTypeDeclName,goTypeDeclGroup
-syntax region goTypeDeclGroup matchgroup=goTypeDeclGroupParens start='(' end=')' contained contains=goTypeDeclName,goComment
-syntax match goTypeDeclName /\K\k*/ contained skipempty skipwhite nextgroup=goTypeDeclTypeParams,goTypeAssign,@goType
-syntax region goTypeDeclTypeParams matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=goTypeParam,goComma nextgroup=@goType
-syntax match goTypeAssign /=/ contained skipwhite nextgroup=@goType
+syntax region  goTypeDeclGroup matchgroup=goTypeDeclGroupParens start='(' end=')' contained contains=goTypeDeclName,goComment
+syntax match   goTypeDeclName /\K\k*/ contained skipempty skipwhite nextgroup=goTypeDeclTypeParams,goTypeAssign,@goType
+syntax region  goTypeDeclTypeParams matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=goTypeParam,goComma nextgroup=@goType
+syntax match   goTypeAssign /=/ contained skipwhite nextgroup=@goType
 
 syntax cluster goType contains=goSimpleBuiltinTypes,goFuncType,goStructType,goInterfaceType,goMap,goSliceOrArrayType,goChannel,goNonPrimitiveType,goPointer,goTypeParens
 
@@ -97,12 +118,12 @@ syntax region goTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' cont
 syntax keyword goSimpleBuiltinTypes any bool byte complex128 complex64 error float32 float64 int int8 int16 int32 int64 rune string uint uint8 uint16 uint32 uint64 uintptr
 
 " TODO: Can function types have type params?
-syntax match goFuncType /func\s*(/ contained skipwhite contains=goFuncTypeParens skipwhite nextgroup=@goType,goFuncTypeMultiReturnType
+syntax match  goFuncType /func\s*(/ contained skipwhite contains=goFuncTypeParens skipwhite nextgroup=@goType,goFuncTypeMultiReturnType
 syntax region goFuncTypeParens matchgroup=goFuncParens start='(' end=')' contained contains=goFuncTypeParam,goComma
 syntax region goFuncTypeMultiReturnType matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
 
 syntax keyword goMap map skipempty skipwhite nextgroup=goMapKeyType
-syntax region goMapKeyType matchgroup=goMapBrackets start='\[' end='\]' contained contains=@goType skipwhite nextgroup=@goType
+syntax region  goMapKeyType matchgroup=goMapBrackets start='\[' end='\]' contained contains=@goType skipwhite nextgroup=@goType
 
 syntax match goSliceOrArrayType /\[\%(\d\+\|\.\.\.\)\?\]/ contained contains=goNumber,goDot skipwhite nextgroup=@goType
 
@@ -122,18 +143,21 @@ syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained 
 syntax match goChannel /<-chan/ skipwhite contains=goOperator nextgroup=@goType
 syntax match goChannel /chan\%(<-\)\?/ skipwhite contains=goOperator nextgroup=@goType
 
-" Functions
+" }}} Types
+
+
+" Functions {{{
 
 " Unfortunately limited to at most 3 nested type args
-syntax match goFuncCall /\v<\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ nextgroup=goFuncCallTypeArgs,goFuncCallArgs
+syntax match  goFuncCall /\v<\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ nextgroup=goFuncCallTypeArgs,goFuncCallArgs
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goFuncCallArgs
-syntax region goFuncCallArgs matchgroup=goFuncCallParens start='(' end=')' contained transparent
+syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained transparent
 
 syntax keyword goFunc func skipempty skipwhite nextgroup=goMethodReceiver,goFuncName,goFuncParams
 
 syntax match goVariadic /\.\.\./ contained skipwhite nextgroup=@goType
 
-syntax match goParam /^\s*\zs\K\k*/ contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
+syntax match goParam /^\s*\zs\K\k*/               contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
 syntax match goParam /\%([(,]\s*\)\@20<=\zs\K\k*/ contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
 
 syntax match goFuncName /\K\k*/ contained skipwhite nextgroup=goFuncTypeParams,goFuncParams
@@ -150,14 +174,14 @@ syntax match goTypeParam /\%(\%(^\|[\[,]\)\s*\)\@20<=\zs\K\k*/ contained skipemp
 syntax region goTypeConstraint start='\s'ms=e+1 end=/[,\]]/me=s-1 contained contains=@goType,goOperator
 
 
-syntax region goFuncParams matchgroup=goFuncParens start='(' end=')' contained contains=goParam,goComma skipwhite nextgroup=goFuncReturnType,goFuncMultiReturn,goFuncBlock
-syntax match goFuncReturnType /\s*\zs(\@<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+{\@<!/ contained contains=@goType skipempty skipwhite nextgroup=goFuncBlock
+syntax region goFuncParams      matchgroup=goFuncParens start='(' end=')' contained contains=goParam,goComma skipwhite nextgroup=goFuncReturnType,goFuncMultiReturn,goFuncBlock
+syntax match  goFuncReturnType  /\s*\zs(\@<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+{\@<!/ contained contains=@goType skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma skipempty skipwhite nextgroup=goFuncBlock
 " syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=@goType,goComma skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained transparent skipwhite nextgroup=goFuncCallArgs
 
 
-syntax match goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
+syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
 syntax region goReceiverBlock matchgroup=goReceiverParens start='(' end=')' contained contains=goParam
 
 " TODO: Check performance of the backtracking on these
@@ -167,13 +191,17 @@ syntax match goFuncTypeParam    /\%(^\|[(,]\)\@<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\
 
 syntax keyword goReturn return
 
-" Structs
+" }}} Functions
+
+
+" Structs {{{
+
 " TODO: goStruct or goStructType?
 syntax keyword goStructType struct skipempty skipwhite nextgroup=goStructTypeBlock
-syntax region goStructTypeBlock matchgroup=goStructTypeBraces start='{' end='}' extend contained contains=goEmbeddedType,goStructTypeField,goComment,goStructTypeTag,goDot,goSemicolon
-syntax region goStructTypeTag start='`' end='`' contained
-syntax region goStructTypeTag start='"' skip='\\"' end='"' contained
-syntax match goStructTypeField /\%(_\|\K\k*\)\%(,\s*\%(_\|\K\k*\)\)*/ contained skipwhite contains=goComma,goUnderscore nextgroup=@goType
+syntax region  goStructTypeBlock matchgroup=goStructTypeBraces start='{' end='}' extend contained contains=goEmbeddedType,goStructTypeField,goComment,goStructTypeTag,goDot,goSemicolon
+syntax region  goStructTypeTag start='`' end='`' contained
+syntax region  goStructTypeTag start='"' skip='\\"' end='"' contained
+syntax match   goStructTypeField /\%(_\|\K\k*\)\%(,\s*\%(_\|\K\k*\)\)*/ contained skipwhite contains=goComma,goUnderscore nextgroup=@goType
 " TODO: Highlight pointer for pointer embedded types
 syntax match goEmbeddedType /\K\k*\%#\@<!$/ contained
 
@@ -188,14 +216,17 @@ syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfa
 " TODO: Maybe don't just put goOperator in here and instead use the correct
 " symbols
 syntax region goInterfaceBlock matchgroup=goInterfaceBraces start='{' end='}' contained extend contains=@goType,goOperator,goInterfaceFunc,goComment
-syntax match goInterfaceFunc /\K\k*\ze\s*(/ contained skipwhite nextgroup=goInterfaceFuncParams
+syntax match  goInterfaceFunc /\K\k*\ze\s*(/ contained skipwhite nextgroup=goInterfaceFuncParams
 syntax region goInterfaceFuncParams matchgroup=goInterfaceFuncParens start='(' end=')' contained contains=goParam,goComma skipwhite nextgroup=@goType,goInterfaceFuncMultiReturn
 syntax region goInterfaceFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
 
+" }}} Structs
 
-" Make and New
+
+" Make and New {{{
+
 syntax keyword goMakeBuiltin make nextgroup=goMakeBlock
-syntax region goMakeBlock matchgroup=goParens start='(' end=')' contained transparent
+syntax region  goMakeBlock matchgroup=goParens start='(' end=')' contained transparent
 " TODO: Fix this (multiline)
 syntax match goFirstParen /\%(make(\)\@5<=/ contained skipempty skipwhite nextgroup=@goType containedin=goMakeBlock
 " syntax region goMakeType start='\%(\<make(\n\?\s*\)\@40<=' end=',\|$' contained containedin=goMakeBlock
@@ -203,11 +234,14 @@ syntax match goFirstParen /\%(make(\)\@5<=/ contained skipempty skipwhite nextgr
 " hi link goMakeType Error
 
 syntax keyword goNewBuiltin new skipwhite nextgroup=goNewBlock
-syntax region goNewBlock matchgroup=goParens start='(' end=')' contained contains=@goType
+syntax region  goNewBlock matchgroup=goParens start='(' end=')' contained contains=@goType
+
+" }}} Make and New
 
 " TODO: Field access?
 
-" If
+" If {{{
+
 " TODO: Figure out how to remove goInlineShortVarDecl; this could simplify if,
 " for, and switch
 syntax keyword goIf if skipempty skipwhite nextgroup=goInlineShortVarDecl
@@ -221,9 +255,11 @@ syntax keyword goRepeat range break continue
 syntax keyword goSwitch switch skipwhite nextgroup=goInlineShortVarDecl
 syntax keyword goSwitchKeywords case fallthrough default select
 
+" }}} If
+
 " Labels TODO
 
-" Misc
+" Misc {{{
 " TODO: Make this a catch-all for various keywords
 " TODO: Is "range" technically an operator?
 syntax keyword goKeywords defer go range
@@ -231,14 +267,16 @@ syntax keyword goIota iota
 " This has to use a lookbehind, otherwise goDot steals the dot
 syntax region goTypeAssertion matchgroup=goParens start=/\.\@1<=(/ end=/)/ contains=@goType,goTypeKeyword
 
+" }}} Misc
+
 " TODO: Statement vs Keyword?
 
 "Highlighting
 
 " Define defaults for non-standard groups that some users have
-hi def link Brackets Delimiter
-hi def link Braces Delimiter
-hi def link Parens Delimiter
+hi def link Brackets     Delimiter
+hi def link Braces       Delimiter
+hi def link Parens       Delimiter
 hi def link FunctionCall Special
 " hi def link Noise NONE
 " hi def link Parameters NONE
@@ -269,27 +307,33 @@ hi link goFuncType goFunc
 
 " Structs
 
-hi link goStructType Structure
+if get(g:, 'go_highlight_struct_correctly', 0)
+    hi link goStructType Structure
+else
+    hi link goStructType Keyword
+endif
+
 hi link goStructTypeTag PreProc
 hi link goStructTypeBraces goBraces
 
 hi link goStringEscape Special
 hi link goConstKeyword Keyword
-hi link goVarKeyword Keyword
-hi link goOperator Operator
+hi link goVarKeyword   Keyword
+hi link goOperator     Operator
 
 
-hi link goStringFormat SpecialChar
-hi link goShortVarDecl Identifier
+hi link goStringFormat       SpecialChar
+hi link goShortVarDecl       Identifier
 hi link goInlineShortVarDecl goShortVarDecl
-hi link goIf Conditional
-hi link goReturn Statement
-hi link goTypeKeyword Keyword
-hi link goTypeDeclName Typedef
-hi link goInterfaceType goStructType
-hi link goComment Comment
-hi link goGenerateComment PreProc
-hi link goCommentTodo Todo
+hi link goIf                 Conditional
+hi link goReturn             Statement
+hi link goTypeKeyword        Keyword
+hi link goTypeDeclName       Typedef
+hi link goInterfaceType      goStructType
+hi link goComment            Comment
+hi link goGenerateComment    PreProc
+hi link goCommentTodo        Todo
+
 " TODO: Figure out what this should be
 
 hi link goUnderscore Special
@@ -297,10 +341,10 @@ hi link goUnderscore Special
 hi link goRepeat Repeat
 hi link goFor goRepeat
 
-hi link goRuneLiteral Character
-hi link goMap goSimpleBuiltinTypes
-hi link goElse Conditional
-hi link goTypeAssign Operator
+hi link goRuneLiteral         Character
+hi link goMap                 goSimpleBuiltinTypes
+hi link goElse                Conditional
+hi link goTypeAssign          Operator
 hi link goTypeDeclGroupParens Parens
 
 " " Keep this, but have an option to change it to 'Constant'
@@ -312,48 +356,47 @@ hi link goComma goNoise
 hi link goSemicolon goNoise
 
 
-hi link goPointer Operator
-hi link goSliceOrArray Special
+hi link goPointer          Operator
+hi link goSliceOrArray     Special
 hi link goSliceOrArrayType Special
-hi link goEmbeddedType Special
-hi link goChannel Type
-hi link goIota Special
-hi link goKeywords Keyword
-hi link goPackage goKeywords
-hi link goSwitch goKeywords
-hi link goSwitchKeywords goKeywords
-" hi goNonPrimitiveType ctermfg=121
+hi link goEmbeddedType     Special
+hi link goChannel          Type
+hi link goIota             Special
+hi link goKeywords         Keyword
+hi link goPackage          goKeywords
+hi link goSwitch           goKeywords
+hi link goSwitchKeywords   goKeywords
 hi link goNonPrimitiveType Type
-hi link goPackageName Special
-hi link goVariadic Operator
-hi link goStructValue goNonPrimitiveType
+hi link goPackageName      Special
+hi link goVariadic         Operator
+hi link goStructValue      goNonPrimitiveType
 
-hi link goBuiltins Special
-hi link goNewBuiltin goBuiltins
-hi link goMakeBuiltin goBuiltins
+hi link goBuiltins          Special
+hi link goNewBuiltin        goBuiltins
+hi link goMakeBuiltin       goBuiltins
 hi link goTypeParamBrackets Special
 
 
-hi def link goBraces Braces
+hi def link goBraces   Braces
 hi def link goBrackets Brackets
-hi def link goParens Parens
+hi def link goParens   Parens
 
-hi link goForBraces goBraces
-hi link goFuncBraces goBraces
-hi link goIfBraces goBraces
+hi link goForBraces       goBraces
+hi link goFuncBraces      goBraces
+hi link goIfBraces        goBraces
 hi link goInterfaceBraces goBraces
-hi link goSliceBraces goBraces
-hi link goStructBraces goBraces
+hi link goSliceBraces     goBraces
+hi link goStructBraces    goBraces
 
 hi link goMapBrackets goBrackets
 
-hi link goFuncCallParens goParens
+hi link goFuncCallParens        goParens
 hi link goFuncMultiReturnParens goParens
-hi link goImportParens goParens
+hi link goImportParens          goParens
 
 hi def link FunctionParens Parens
 
-hi link goFuncParens FunctionParens
+hi link goFuncParens     FunctionParens
 hi link goReceiverParens FunctionParens
 
 hi def link goFuncCall FunctionCall
@@ -365,29 +408,32 @@ hi link goParam Parameters
 hi link goImportItem Special
 hi link goTypeParens goParens
 
-hi link goInterfaceFunc Identifier
+hi link goInterfaceFunc       Identifier
 hi link goInterfaceFuncParens FunctionParens
 
 
 
 
 hi link goConstDefParens goParens
-hi link goVarDefParens goParens
+hi link goVarDefParens   goParens
 
 
 
 
 " These groups are just used for structural purposes and don't really need to be
 " highlighted, hence no "def link"
-hi link goVariableDef NONE
-hi link goFirstParen NONE
-hi link goFuncReturnType NONE
-hi link goFuncTypeParam NONE
+
+hi link goVariableDef        NONE
+hi link goFirstParen         NONE
+hi link goFuncReturnType     NONE
+hi link goFuncTypeParam      NONE
 hi link goInvalidRuneLiteral NONE
-hi link goNamedReturnValue NONE
-hi link goSliceItemType NONE
-hi link goStructTypeField NONE
-hi link goTypeConstraint NONE
-hi link goTypeParam NONE
+hi link goNamedReturnValue   NONE
+hi link goSliceItemType      NONE
+hi link goStructTypeField    NONE
+hi link goTypeConstraint     NONE
+hi link goTypeParam          NONE
 
 let b:current_syntax = 'go'
+
+" vim:tw=80:fdm=marker:fmr={{{,}}}:fdl=0:fdt=foldtext():
