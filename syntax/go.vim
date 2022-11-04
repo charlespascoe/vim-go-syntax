@@ -1,4 +1,4 @@
-if exists("b:current_syntax")
+if exists("b:current_syntax") && !get(g:, 'go_highlight_override_existing_syntax', 1)
   finish
 endif
 
