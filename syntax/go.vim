@@ -222,10 +222,10 @@ syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' containe
 syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfaceBlock
 " TODO: Maybe don't just put goOperator in here and instead use the correct
 " symbols
-syntax region goInterfaceBlock matchgroup=goInterfaceBraces start='{' end='}' contained extend contains=@goType,goOperator,goInterfaceFunc,goComment
-syntax match  goInterfaceFunc /\K\k*\ze\s*(/ contained skipwhite nextgroup=goInterfaceFuncParams
-syntax region goInterfaceFuncParams matchgroup=goInterfaceFuncParens start='(' end=')' contained contains=goParam,goComma skipwhite nextgroup=@goType,goInterfaceFuncMultiReturn
-syntax region goInterfaceFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
+syntax region goInterfaceBlock matchgroup=goInterfaceBraces start='{' end='}' contained extend contains=@goType,goOperator,goInterfaceMethod,goComment
+syntax match  goInterfaceMethod /\K\k*\ze\s*(/ contained skipwhite nextgroup=goInterfaceMethodParams
+syntax region goInterfaceMethodParams matchgroup=goInterfaceMethodParens start='(' end=')' contained contains=goFuncTypeParam,goComma skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
+syntax region goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
 
 " }}} Structs
 
@@ -414,8 +414,8 @@ hi link goParam Parameters
 hi link goImportItem Special
 hi link goTypeParens goParens
 
-hi link goInterfaceFunc       Identifier
-hi link goInterfaceFuncParens FunctionParens
+hi link goInterfaceMethod       Identifier
+hi link goInterfaceMethodParens FunctionParens
 
 
 
