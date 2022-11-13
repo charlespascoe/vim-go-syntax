@@ -8,7 +8,6 @@ syntax case match
 
 " TODO: Add support for defining multiple types at once
 " (https://go.dev/ref/spec#Underlying_types)
-" TODO: Const and Var group declarations
 " TODO: Simplify basic keywords into one syntax group (maybe?)
 
 " TODO: Maybe have highlighting for built-in functions etc?
@@ -43,8 +42,7 @@ syntax match   goGenerateComment +//go:generate.*$+
 
 " Literals {{{
 
-" syntax region goString start='"' skip=/\\"/ end='"\|$' contains=goStringEscape,goDoubleQuoteEscape,goStringFormat
-syntax region goString             start='"' skip=/\\\\\|\\"/ end='"' oneline contains=goStringEscape,goDoubleQuoteEscape,goStringFormat
+syntax region goString             start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=goStringEscape,goDoubleQuoteEscape,goStringFormat
 syntax match  goStringEscape       /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
 syntax region goInvalidRuneLiteral start=+'+ skip=+\\'+ end=+'+ oneline keepend contains=goRuneLiteral
 " TODO: Highlight escapes

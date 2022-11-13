@@ -48,6 +48,10 @@ fun! s:FindAllPackageNames()
 endfun
 
 fun! s:RefreshPackageHighlighting()
+    if !get(g:, 'go_highlight_override_existing_syntax', 1)
+        return
+    endif
+
     let l:packages = s:FindAllPackageNames()
 
     if hlexists('goPackageCustomNames')
