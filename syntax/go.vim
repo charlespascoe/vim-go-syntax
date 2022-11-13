@@ -73,8 +73,8 @@ syntax region goBraceBlock   matchgroup=goBraces   start='{'  end='}'  transpare
 
 " Constants and Variables {{{
 
-syntax keyword goConstKeyword const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
-syntax keyword goVarKeyword   var   skipempty skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
+syntax keyword goConstDecl const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
+syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
 
 syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP
 syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP
@@ -108,7 +108,7 @@ syntax match   goImportItem /\(\([\._]\|\K\k*\)\s\+\)\?"[^"]*"/ contained contai
 syntax match  goPointer /*/ contained nextgroup=@goType
 syntax region goTypeParens start='(' end=')' contained contains=@goType
 
-syntax keyword goTypeKeyword type skipempty skipwhite nextgroup=goTypeDeclName,goTypeDeclGroup
+syntax keyword goTypeDecl type skipempty skipwhite nextgroup=goTypeDeclName,goTypeDeclGroup
 syntax region  goTypeDeclGroup matchgroup=goTypeDeclGroupParens start='(' end=')' contained contains=goTypeDeclName,goComment
 syntax match   goTypeDeclName /\K\k*/ contained skipempty skipwhite nextgroup=goTypeDeclTypeParams,goTypeAssign,@goType
 syntax region  goTypeDeclTypeParams matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=goTypeParam,goComma nextgroup=@goType
@@ -160,7 +160,7 @@ syntax match  goFuncCall /\v<\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goFuncCallArgs
 syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=TOP
 
-syntax keyword goFunc func skipempty skipwhite nextgroup=goMethodReceiver,goFuncName,goFuncParams
+syntax keyword goFuncDecl func skipempty skipwhite nextgroup=goMethodReceiver,goFuncName,goFuncParams
 
 syntax match goVariadic /\.\.\./ contained skipwhite nextgroup=@goType
 
@@ -271,7 +271,7 @@ syntax keyword goSwitchKeywords case fallthrough default select
 " TODO: Is "range" technically an operator?
 syntax keyword goKeywords defer go range
 " This has to use a lookbehind, otherwise goDot steals the dot
-syntax region goTypeAssertion matchgroup=goParens start=/\.\@1<=(/ end=/)/ contains=@goType,goTypeKeyword
+syntax region goTypeAssertion matchgroup=goParens start=/\.\@1<=(/ end=/)/ contains=@goType,goTypeDecl
 
 " }}} Misc
 
@@ -307,9 +307,9 @@ hi link goSimpleBuiltinTypes Type
 
 " Functions
 
-hi link goFunc Keyword
+hi link goFuncDecl Keyword
 hi link goFuncName Function
-hi link goFuncType goFunc
+hi link goFuncType goFuncDecl
 
 " Structs
 
@@ -323,8 +323,8 @@ hi link goStructTypeTag PreProc
 hi link goStructTypeBraces goBraces
 
 hi link goStringEscape Special
-hi link goConstKeyword Keyword
-hi link goVarKeyword   Keyword
+hi link goConstDecl    Keyword
+hi link goVarDecl      Keyword
 hi link goOperator     Operator
 
 
@@ -333,7 +333,7 @@ hi link goShortVarDecl       Identifier
 hi link goInlineShortVarDecl goShortVarDecl
 hi link goIf                 Conditional
 hi link goReturn             Statement
-hi link goTypeKeyword        Keyword
+hi link goTypeDecl           Keyword
 hi link goTypeDeclName       Typedef
 hi link goInterfaceType      goStructType
 hi link goComment            Comment
@@ -429,8 +429,8 @@ hi link goVarDeclParens   goParens
 " These groups are just used for structural purposes and don't really need to be
 " highlighted, hence no "def link"
 
-" hi link goVarIdentifier      NONE
-hi link goVarIdentifier      Identifier
+hi link goVarIdentifier      NONE
+" hi link goVarIdentifier      Identifier
 hi link goVarGroupIdentifier goVarIdentifier
 hi link goFirstParen         NONE
 hi link goFuncReturnType     NONE
