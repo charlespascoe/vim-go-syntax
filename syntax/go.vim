@@ -286,138 +286,137 @@ hi def link FunctionCall Special
 
 " Constants and Literals
 
-hi link goBooleanFalse Boolean
-hi link goBooleanTrue Boolean
-hi link goString String
+hi def link goBooleanFalse Boolean
+hi def link goBooleanTrue Boolean
+hi def link goString String
 " TODO: Link floats to Float
-hi link goNumber Number
-hi link goNil Constant
-hi link goRawString String
+hi def link goNumber Number
+hi def link goNil Constant
+hi def link goRawString String
 
 " Package and Imports
 " hi link goImport Include TODO: Is this correct?
-hi link goImport Keyword
+hi def link goImport Keyword
 
 " Types
 
-hi link goSimpleBuiltinTypes Type
+hi def link goSimpleBuiltinTypes Type
 
 " Functions
 
-hi link goFuncDecl Keyword
-hi link goFuncName Function
-hi link goFuncType goFuncDecl
+hi def link goFuncDecl Keyword
+hi def link goFuncName Function
+hi def link goFuncType goFuncDecl
 
 " Structs
 
 if get(g:, 'go_highlight_struct_correctly', 0)
-    hi link goStructType Structure
+    hi def link goStructType Structure
 else
-    hi link goStructType Keyword
+    hi def link goStructType Keyword
 endif
 
-hi link goStructTypeTag PreProc
-hi link goStructTypeBraces goBraces
+hi def link goStructTypeTag PreProc
+hi def link goStructTypeBraces goBraces
 
-hi link goStringEscape Special
-hi link goConstDecl    Keyword
-hi link goVarDecl      Keyword
-hi link goOperator     Operator
+hi def link goStringEscape Special
+hi def link goConstDecl    Keyword
+hi def link goVarDecl      Keyword
+hi def link goOperator     Operator
 
-
-hi link goStringFormat       SpecialChar
-hi link goShortVarDecl       Identifier
-hi link goInlineShortVarDecl goShortVarDecl
-hi link goIf                 Conditional
-hi link goReturn             Statement
-hi link goTypeDecl           Keyword
-hi link goTypeDeclName       Typedef
-hi link goInterfaceType      goStructType
-hi link goComment            Comment
-hi link goGenerateComment    PreProc
-hi link goCommentTodo        Todo
+hi def link goStringFormat       SpecialChar
+hi def link goShortVarDecl       Identifier
+hi def link goInlineShortVarDecl goShortVarDecl
+hi def link goIf                 Conditional
+hi def link goReturn             Statement
+hi def link goTypeDecl           Keyword
+hi def link goTypeDeclName       Typedef
+hi def link goInterfaceType      goStructType
+hi def link goComment            Comment
+hi def link goGenerateComment    PreProc
+hi def link goCommentTodo        Todo
 
 " TODO: Figure out what this should be
 
-hi link goUnderscore Special
+hi def link goUnderscore Special
 
-hi link goRepeat Repeat
-hi link goFor goRepeat
+hi def link goRepeat Repeat
+hi def link goFor goRepeat
 
-hi link goRuneLiteral         Character
-hi link goMap                 goSimpleBuiltinTypes
-hi link goElse                Conditional
-hi link goTypeAssign          Operator
-hi link goTypeDeclGroupParens Parens
+hi def link goRuneLiteral         Character
+hi def link goMap                 goSimpleBuiltinTypes
+hi def link goElse                Conditional
+hi def link goTypeAssign          goOperator
+hi def link goTypeDeclGroupParens Parens
 
 " " Keep this, but have an option to change it to 'Constant'
 " hi link goInvalidRuneLiteral Error
 
 hi def link goNoise Noise
-hi link goDot goNoise
-hi link goComma goNoise
-hi link goSemicolon goNoise
+hi def link goDot goNoise
+hi def link goComma goNoise
+hi def link goSemicolon goNoise
 
 
-hi link goPointer          Operator
-hi link goSliceOrArray     Special
-hi link goSliceOrArrayType Special
-hi link goChannel          Type
-hi link goIota             Special
-hi link goKeywords         Keyword
-hi link goPackage          goKeywords
-hi link goSwitch           goKeywords
-hi link goSwitchKeywords   goKeywords
-hi link goNonPrimitiveType Type
-hi link goPackageName      Special
-hi link goVariadic         Operator
-hi link goStructValue      goNonPrimitiveType
+hi def link goPointer          goOperator
+hi def link goSliceOrArray     Special
+hi def link goSliceOrArrayType Special
+hi def link goChannel          Type
+hi def link goIota             Special
+hi def link goKeywords         Keyword
+hi def link goPackage          goKeywords
+hi def link goSwitch           goKeywords
+hi def link goSwitchKeywords   goKeywords
+hi def link goNonPrimitiveType Type
+hi def link goPackageName      Special
+hi def link goVariadic         goOperator
+hi def link goStructValue      goNonPrimitiveType
 
-hi link goBuiltins          Special
-hi link goNewBuiltin        goBuiltins
-hi link goMakeBuiltin       goBuiltins
-hi link goTypeParamBrackets Special
+hi def link goBuiltins          Special
+hi def link goNewBuiltin        goBuiltins
+hi def link goMakeBuiltin       goBuiltins
+hi def link goTypeParamBrackets Special
 
 
 hi def link goBraces   Braces
 hi def link goBrackets Brackets
 hi def link goParens   Parens
 
-hi link goForBraces       goBraces
-hi link goFuncBraces      goBraces
-hi link goIfBraces        goBraces
-hi link goInterfaceBraces goBraces
-hi link goSliceBraces     goBraces
-hi link goStructBraces    goBraces
+hi def link goForBraces       goBraces
+hi def link goFuncBraces      goBraces
+hi def link goIfBraces        goBraces
+hi def link goInterfaceBraces goBraces
+hi def link goSliceBraces     goBraces
+hi def link goStructBraces    goBraces
 
-hi link goMapBrackets goBrackets
+hi def link goMapBrackets goBrackets
 
-hi link goFuncCallParens        goParens
-hi link goFuncMultiReturnParens goParens
-hi link goImportParens          goParens
+hi def link goFuncCallParens        goParens
+hi def link goFuncMultiReturnParens goParens
+hi def link goImportParens          goParens
 
 hi def link FunctionParens Parens
 
-hi link goFuncParens     FunctionParens
-hi link goReceiverParens FunctionParens
+hi def link goFuncParens     FunctionParens
+hi def link goReceiverParens FunctionParens
 
 hi def link goFuncCall FunctionCall
 
 " TODO: Should this be "goParams" rather than "goParam"?
-hi link goParam Parameters
+hi def link goParam Parameters
 
 " TODO: This isn't standard
-hi link goImportItem Special
-hi link goTypeParens goParens
+hi def link goImportItem Special
+hi def link goTypeParens goParens
 
-hi link goInterfaceMethod       Identifier
-hi link goInterfaceMethodParens FunctionParens
-
-
+hi def link goInterfaceMethod       Identifier
+hi def link goInterfaceMethodParens FunctionParens
 
 
-hi link goConstDeclParens goParens
-hi link goVarDeclParens   goParens
+
+
+hi def link goConstDeclParens goParens
+hi def link goVarDeclParens   goParens
 
 
 
@@ -425,18 +424,18 @@ hi link goVarDeclParens   goParens
 " These groups are just used for structural purposes and don't really need to be
 " highlighted, hence no "def link"
 
-hi link goVarIdentifier      NONE
+hi def link goVarIdentifier      NONE
 " hi link goVarIdentifier      Identifier
-hi link goVarGroupIdentifier goVarIdentifier
-hi link goFirstParen         NONE
-hi link goFuncReturnType     NONE
-hi link goFuncTypeParam      NONE
-hi link goInvalidRuneLiteral NONE
-hi link goNamedReturnValue   NONE
-hi link goSliceItemType      NONE
-hi link goStructTypeField    NONE
-hi link goTypeConstraint     NONE
-hi link goTypeParam          NONE
+hi def link goVarGroupIdentifier goVarIdentifier
+hi def link goFirstParen         NONE
+hi def link goFuncReturnType     NONE
+hi def link goFuncTypeParam      NONE
+hi def link goInvalidRuneLiteral NONE
+hi def link goNamedReturnValue   NONE
+hi def link goSliceItemType      NONE
+hi def link goStructTypeField    NONE
+hi def link goTypeConstraint     NONE
+hi def link goTypeParam          NONE
 
 let b:current_syntax = 'go'
 
