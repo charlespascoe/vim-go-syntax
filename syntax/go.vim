@@ -20,6 +20,11 @@ syntax case match
 "   contain complext nested types
 " - No other types should use extend
 
+" Note on use of transparent: Most things use contains=TOP to allow them to
+" behave predictably when they are nested within a region with special syntax
+" elements (e.g. goVarDeclGroup and goConstDeclGroup). Only a handful of things
+" should use 'transparent', particularly not top-level items.
+
 syntax match   goDot        /\./
 syntax match   goSemicolon  /;/
 syntax match   goComma      /,/
@@ -68,14 +73,16 @@ syntax region goBraceBlock   matchgroup=goBraces   start='{'  end='}'  transpare
 
 " Constants and Variables {{{
 
-syntax keyword goConstKeyword const skipempty skipwhite nextgroup=goVariableDef,goConstDelcGroup
-syntax keyword goVarKeyword   var   skipempty skipwhite nextgroup=goVariableDef,goVarDelcGroup
-" TODO: Actually do something with this
-syntax region goVarDefGroup matchgroup=goVarDefParens start='(' end=')' contained transparent
-" TODO: Actually do something with this
-syntax region goConstDefGroup matchgroup=goConstDefParens start='(' end=')' contained transparent
-" TODO: Rename to something else
-syntax match goVariableDef /\<\K\k*/ contained skipwhite nextgroup=@goType
+syntax keyword goConstKeyword const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
+syntax keyword goVarKeyword   var   skipempty skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
+
+syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP
+syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP
+
+syntax match goVarIdentifier      /\<\K\k*/ contained skipwhite nextgroup=@goType
+syntax match goVarGroupIdentifier /\%(\%(^\|;\|\%(const\|var\)\s\+(\?\)\s*\)\@40<=\K\k*/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=@goType
+
+syntax keyword goIota iota contained containedin=goConstDeclGroup
 
 " TODO: Is it possible to reduce duplication here? Remember performance!
 " NOTE: goShortVarDecl currently doesn't work inside one-line functions,
@@ -136,7 +143,7 @@ syntax match goSliceOrArray /\k\@<!\[\%(\d\+\|\.\.\.\)\?\]\ze\%(\K\|\[\|(\)/ con
 " around the type, which is then extended by goTypeParens.
 syntax match goSliceItemType /(\|\%(\%(interface\|struct\)\s*{\|[^{()]\)\+/ contained contains=@goType skipwhite nextgroup=goSliceItems
 
-syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained transparent
+syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=TOP
 
 " syntax match goChannel /<-chan\|chan\%(<-\)\?/ contains=goOperator skipwhite nextgroup=@goType
 " syntax match goChannel /chan/ skipwhite nextgroup=@goType
@@ -151,7 +158,7 @@ syntax match goChannel /chan\%(<-\)\?/ skipwhite contains=goOperator nextgroup=@
 " Unfortunately limited to at most 3 nested type args
 syntax match  goFuncCall /\v<\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ nextgroup=goFuncCallTypeArgs,goFuncCallArgs
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goFuncCallArgs
-syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained transparent
+syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=TOP
 
 syntax keyword goFunc func skipempty skipwhite nextgroup=goMethodReceiver,goFuncName,goFuncParams
 
@@ -178,7 +185,7 @@ syntax region goFuncParams      matchgroup=goFuncParens start='(' end=')' contai
 syntax match  goFuncReturnType  /\s*\zs(\@<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+{\@<!/ contained contains=@goType skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma skipempty skipwhite nextgroup=goFuncBlock
 " syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=@goType,goComma skipempty skipwhite nextgroup=goFuncBlock
-syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained transparent skipwhite nextgroup=goFuncCallArgs
+syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained contains=TOP skipwhite nextgroup=goFuncCallArgs
 
 
 syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
@@ -209,7 +216,7 @@ syntax match goEmbeddedType /\K\k*\%#\@<!$/ contained
 " braces, but it causes odd behaviour elsewhere
 syntax match goStructValue /\v<%(\K\k*\.)*\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
-syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained transparent
+syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP
 
 " Interfaces
 syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfaceBlock
@@ -226,7 +233,7 @@ syntax region goInterfaceFuncMultiReturn matchgroup=goFuncMultiReturnParens star
 " Make and New {{{
 
 syntax keyword goMakeBuiltin make nextgroup=goMakeBlock
-syntax region  goMakeBlock matchgroup=goParens start='(' end=')' contained transparent
+syntax region  goMakeBlock matchgroup=goParens start='(' end=')' contained contains=TOP
 " TODO: Fix this (multiline)
 syntax match goFirstParen /\%(make(\)\@5<=/ contained skipempty skipwhite nextgroup=@goType containedin=goMakeBlock
 " syntax region goMakeType start='\%(\<make(\n\?\s*\)\@40<=' end=',\|$' contained containedin=goMakeBlock
@@ -263,7 +270,6 @@ syntax keyword goSwitchKeywords case fallthrough default select
 " TODO: Make this a catch-all for various keywords
 " TODO: Is "range" technically an operator?
 syntax keyword goKeywords defer go range
-syntax keyword goIota iota
 " This has to use a lookbehind, otherwise goDot steals the dot
 syntax region goTypeAssertion matchgroup=goParens start=/\.\@1<=(/ end=/)/ contains=@goType,goTypeKeyword
 
@@ -414,8 +420,8 @@ hi link goInterfaceFuncParens FunctionParens
 
 
 
-hi link goConstDefParens goParens
-hi link goVarDefParens   goParens
+hi link goConstDeclParens goParens
+hi link goVarDeclParens   goParens
 
 
 
@@ -423,7 +429,9 @@ hi link goVarDefParens   goParens
 " These groups are just used for structural purposes and don't really need to be
 " highlighted, hence no "def link"
 
-hi link goVariableDef        NONE
+" hi link goVarIdentifier      NONE
+hi link goVarIdentifier      Identifier
+hi link goVarGroupIdentifier goVarIdentifier
 hi link goFirstParen         NONE
 hi link goFuncReturnType     NONE
 hi link goFuncTypeParam      NONE
@@ -436,4 +444,4 @@ hi link goTypeParam          NONE
 
 let b:current_syntax = 'go'
 
-" vim:tw=80:fdm=marker:fmr={{{,}}}:fdl=0:fdt=foldtext():
+" vim:tw=80:fdm=marker:fmr={{{,}}}:
