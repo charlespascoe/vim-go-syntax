@@ -16,7 +16,7 @@ syntax case match
 
 " Notes on use of extend:
 " - Struct and Interface need them so that simple matches (e.g. /struct {/) can
-"   contain complext nested types
+"   contain complex nested types
 " - No other types should use extend
 
 " Note on use of transparent: Most things use contains=TOP to allow them to
@@ -199,24 +199,23 @@ syntax keyword goReturn return
 " }}} Functions
 
 
-" Structs {{{
+" Structs and Interfaces {{{
 
-" TODO: goStruct or goStructType?
 syntax keyword goStructType struct skipempty skipwhite nextgroup=goStructTypeBlock
 syntax region  goStructTypeBlock matchgroup=goStructTypeBraces start='{' end='}' extend contained contains=goEmbeddedType,goStructTypeField,goComment,goStructTypeTag,goDot,goSemicolon
 syntax region  goStructTypeTag start='`' end='`' contained
 syntax region  goStructTypeTag start='"' skip='\\"' end='"' contained
 syntax match   goStructTypeField /\%(_\|\K\k*\)\%(,\s*\%(_\|\K\k*\)\)*/ contained skipwhite contains=goComma,goUnderscore nextgroup=@goType
-" TODO: Highlight pointer for pointer embedded types
-syntax match goEmbeddedType /\K\k*\%#\@<!$/ contained
+syntax match   goEmbeddedType /\*\?\%(\K\k*\.\)\?\K\k*\%#\@<!$/ contained contains=@goType
 
-" It is techically possible to have a space between a struct name and the
-" braces, but it causes odd behaviour elsewhere
+" It is technically possible to have a space between a struct name and the
+" braces, but it's hard to reliably highlight
 syntax match goStructValue /\v<%(\K\k*\.)*\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
 syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP
 
 " Interfaces
+
 syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfaceBlock
 " TODO: Maybe don't just put goOperator in here and instead use the correct
 " symbols
@@ -225,7 +224,7 @@ syntax match  goInterfaceMethod /\K\k*\ze\s*(/ contained skipwhite nextgroup=goI
 syntax region goInterfaceMethodParams matchgroup=goInterfaceMethodParens start='(' end=')' contained contains=goFuncTypeParam,goComma skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
 syntax region goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
 
-" }}} Structs
+" }}} Structs and Interfaces
 
 
 " Make and New {{{
@@ -363,7 +362,6 @@ hi link goSemicolon goNoise
 hi link goPointer          Operator
 hi link goSliceOrArray     Special
 hi link goSliceOrArrayType Special
-hi link goEmbeddedType     Special
 hi link goChannel          Type
 hi link goIota             Special
 hi link goKeywords         Keyword
