@@ -6,24 +6,24 @@ syntax clear
 syntax sync fromstart
 syntax case match
 
+" TODO: Syntax Folding
+
 " TODO: Add support for defining multiple types at once
 " (https://go.dev/ref/spec#Underlying_types)
-" TODO: Simplify basic keywords into one syntax group (maybe?)
 
 " TODO: Maybe have highlighting for built-in functions etc?
 " TODO: Check performance of lookbehinds
 " TODO: Check correct use of 'skipempty'
-" TODO: Spelling
 
-" Notes on use of extend:
-" - Struct and Interface need them so that simple matches (e.g. /struct {/) can
-"   contain complex nested types
-" - No other types should use extend
+" Struct and Interface need 'extend' so that simple matches (e.g. /struct {/)
+" can contain complex nested types by extending the parent match. No other types
+" should use extend
 
-" Note on use of transparent: Most things use contains=TOP to allow them to
-" behave predictably when they are nested within a region with special syntax
-" elements (e.g. goVarDeclGroup and goConstDeclGroup). Only a handful of things
-" should use 'transparent', particularly not top-level items.
+" Some things use 'contains=TOP,@Spell' to allow them to behave predictably when
+" they are nested within a region with special syntax elements (e.g.
+" goVarDeclGroup and goConstDeclGroup) or when imported into other syntaxes.
+" The '@Spell' is required to disable spelling in these items.  Only a handful
+" of things should use 'transparent'.
 
 " Config Utils {{{
 
@@ -50,6 +50,14 @@ fun s:HiConfig(group, option_names, opts={})
         exec 'hi link '.a:group.' '.get(a:opts, 'offgroup', 'NONE')
     endif
 endfun
+
+if get(g:, 'go_highlight_string_spellcheck', 1)
+    syntax cluster goStringSpell contains=@Spell
+endif
+
+if get(g:, 'go_highlight_comment_spellcheck', 1)
+    syntax cluster goCommentSpell contains=@Spell
+endif
 
 " }}} Config Utils
 
@@ -79,8 +87,8 @@ hi def link goUnderscore Special
 " Comments {{{
 
 syntax keyword goCommentTodo     contained TODO FIXME XXX TBD NOTE
-syntax region  goComment         start=+//+  end=+$+   contains=goCommentTodo keepend
-syntax region  goComment         start=+/\*+ end=+\*/+ contains=goCommentTodo keepend fold
+syntax region  goComment         start=+//+  end=+$+   contains=@goCommentSpell,goCommentTodo keepend
+syntax region  goComment         start=+/\*+ end=+\*/+ contains=@goCommentSpell,goCommentTodo keepend
 syntax match   goGenerateComment +//go:generate.*$+
 
 call s:HiConfig('goGenerateComment', ['generate_tags'], #{offgroup: 'goComment'})
@@ -94,7 +102,7 @@ hi def link goGenerateComment PreProc
 
 " Literals {{{
 
-syntax region goString       start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=goStringEscape,goDoubleQuoteEscape,goStringFormat
+syntax region goString       start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=@goStringSpell,goStringEscape,goDoubleQuoteEscape,goStringFormat
 syntax match  goStringEscape /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
 syntax match  goStringFormat /\v\%%([%EFGOTUXbcdefgopqstvxf])/ contained
 
@@ -164,8 +172,8 @@ hi def link goParens   Delimiter
 syntax keyword goConstDecl const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
 syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
 
-syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP
-syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP
+syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP,@Spell
+syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP,@Spell
 
 syntax match goVarIdentifier      /\<\K\k*/ contained skipwhite nextgroup=@goType
 syntax match goVarGroupIdentifier /\%(\%(^\|;\|\%(const\|var\)\s\+(\?\)\s*\)\@40<=\K\k*/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=@goType
@@ -198,14 +206,16 @@ hi def link goIota               Special
 
 " Packages {{{
 
-syntax keyword goPackage    package
-syntax keyword goImport     import skipwhite nextgroup=goImportItem,goImports
-syntax region  goImports    matchgroup=goImportParens start='(' end=')' contained contains=goImportItem,goComment
-syntax match   goImportItem /\(\([\._]\|\K\k*\)\s\+\)\?"[^"]*"/ contained contains=@NoSpell,goString
+syntax keyword goPackage      package
+syntax keyword goImport       import skipwhite nextgroup=goImportItem,goImports
+syntax region  goImports      matchgroup=goImportParens start='(' end=')' contained contains=goImportItem,goComment
+syntax match   goImportItem   /\(\([\._]\|\K\k*\)\s\+\)\?"[^"]*"/ contained contains=goImportString
+syntax region  goImportString start='"' end='"' keepend contained
 
 hi def link goPackage      Keyword
 hi def link goImport       Keyword
 hi def link goImportItem   Special
+hi def link goImportString goString
 hi def link goImportParens goParens
 
 " }}} Packages
@@ -251,7 +261,7 @@ syntax match goSliceOrArray /\k\@<!\[\%(\d\+\|\.\.\.\)\?\]\ze\%(\K\|\[\|(\)/ con
 " around the type, which is then extended by goTypeParens.
 syntax match goSliceItemType /(\|\%(\%(interface\|struct\)\s*{\|[^{()]\)\+/ contained contains=@goType skipwhite nextgroup=goSliceItems
 
-syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=TOP
+syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=TOP,@Spell
 
 " syntax match goChannel /<-chan\|chan\%(<-\)\?/ contains=goOperator skipwhite nextgroup=@goType
 " syntax match goChannel /chan/ skipwhite nextgroup=@goType
@@ -292,7 +302,7 @@ hi def link goFuncType              goFuncDecl
 " Unfortunately limited to at most 3 nested type args
 syntax match  goFuncCall /\v<\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ nextgroup=goFuncCallTypeArgs,goFuncCallArgs
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goFuncCallArgs
-syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=TOP
+syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=TOP,@Spell
 
 syntax keyword goFuncDecl func skipempty skipwhite nextgroup=goMethodReceiver,goFuncName,goFuncParams
 
@@ -320,7 +330,7 @@ syntax region goFuncParams      matchgroup=goFuncParens start='(' end=')' contai
 syntax match  goFuncReturnType  /\s*\zs(\@<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+{\@<!/ contained contains=@goType skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma skipempty skipwhite nextgroup=goFuncBlock
 " syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=@goType,goComma skipempty skipwhite nextgroup=goFuncBlock
-syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained contains=TOP skipwhite nextgroup=goFuncCallArgs
+syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained contains=TOP,@Spell skipwhite nextgroup=goFuncCallArgs
 
 
 syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
@@ -379,7 +389,7 @@ syntax match   goEmbeddedType /\*\?\%(\K\k*\.\)\?\K\k*\%#\@<!$/ contained contai
 " braces, but it's hard to reliably highlight
 syntax match  goStructValue /\v<%(\K\k*\.)*\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
-syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP
+syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP,@Spell
 
 syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfaceBlock
 " TODO: Maybe don't just put goOperator in here and instead use the correct
@@ -409,7 +419,7 @@ hi def link goInterfaceMethodParens goFuncParens
 " Make and New {{{
 
 syntax keyword goMakeBuiltin make nextgroup=goMakeBlock
-syntax region  goMakeBlock matchgroup=goParens start='(' end=')' contained contains=TOP
+syntax region  goMakeBlock matchgroup=goParens start='(' end=')' contained contains=TOP,@Spell
 " TODO: Fix this (multiline)
 syntax match goFirstParen /\%(make(\)\@5<=/ contained skipempty skipwhite nextgroup=@goType containedin=goMakeBlock
 " syntax region goMakeType start='\%(\<make(\n\?\s*\)\@40<=' end=',\|$' contained containedin=goMakeBlock
