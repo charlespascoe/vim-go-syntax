@@ -8,6 +8,9 @@ syntax case match
 
 " TODO: Syntax Folding
 
+" TODO: Is this correct?
+setlocal iskeyword=@,48-57,_,192-255
+
 " TODO: Add support for defining multiple types at once
 " (https://go.dev/ref/spec#Underlying_types)
 
@@ -64,6 +67,7 @@ endif
 
 " Misc {{{
 
+" TODO: Only valid operators?
 syntax match   goOperator   /[-+*/!:=%&^<>|~]\+/
 syntax match   goDot        /\./
 syntax match   goComma      /,/
@@ -104,6 +108,8 @@ hi def link goGenerateComment PreProc
 
 syntax region goString       start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=@goStringSpell,goStringEscape,goDoubleQuoteEscape,goStringFormat
 syntax match  goStringEscape /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
+
+" TODO: float formatting, flags (https://pkg.go.dev/fmt)
 syntax match  goStringFormat /\v\%%([%EFGOTUXbcdefgopqstvxf])/ contained
 
 " 'goInvalidRuneLiteral' is a loose match for all single-quote sequences; they
@@ -124,8 +130,6 @@ syntax keyword goBooleanTrue  true
 syntax keyword goBooleanFalse false
 
 syntax keyword goNil nil
-
-" TODO: float formatting, flags (https://pkg.go.dev/fmt)
 
 call s:HiConfig('goStringFormat',       ['format_strings'], #{offgroup: 'goString'})
 call s:HiConfig('goInvalidRuneLiteral', ['rune_literal_error'])
@@ -180,13 +184,21 @@ syntax match goVarGroupIdentifier /\%(\%(^\|;\|\%(const\|var\)\s\+(\?\)\s*\)\@40
 
 " TODO: Is it possible to reduce duplication here? Remember performance!
 " NOTE: goShortVarDecl currently doesn't work inside one-line functions,
-" e.g func() { a, b := f(); return a }
-syntax match goShortVarDecl       /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore
+" e.g func() any { a, b := f(); return a }
+syntax match goShortVarDecl       /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore contained containedin=goFuncBlock
 syntax match goInlineShortVarDecl /\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/        contains=goComma,goUnderscore contained
 
 syntax keyword goIota iota contained containedin=goConstDeclGroup
 
+if get(g:, 'go_highlight_variable_assignments', 0)
+    " NOTE: goVariableAssignment currently doesn't work inside one-line
+    " functions, e.g func(a int) int { a = 123; return a }
+    " TODO: Only valid operators?
+    syntax match goVariableAssignment /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained containedin=goFuncBlock
+endif
+
 call s:HiConfig('goVarIdentifier', ['variable_declarations'])
+call s:HiConfig('goShortVarDecl',  ['short_variable_declarations','variable_declarations'])
 
 hi def link goConstDecl          Statement
 hi def link goVarDecl            Statement
@@ -195,9 +207,11 @@ hi def link goConstDeclParens    goParens
 hi def link goVarDeclParens      goParens
 
 hi def link goVarIdentifier      Identifier
-hi def link goInlineShortVarDecl goVarIdentifier
-hi def link goShortVarDecl       goVarIdentifier
 hi def link goVarGroupIdentifier goVarIdentifier
+hi def link goShortVarDecl       Identifier
+hi def link goInlineShortVarDecl goShortVarDecl
+
+hi def link goVariableAssignment Special
 
 hi def link goIota               Special
 
