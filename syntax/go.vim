@@ -276,13 +276,60 @@ syntax region goTypeAssertion matchgroup=goParens start=/\.\@1<=(/ end=/)/ conta
 
 "Highlighting
 
-" Define defaults for non-standard groups that some users have
-hi def link Brackets     Delimiter
-hi def link Braces       Delimiter
-hi def link Parens       Delimiter
-hi def link FunctionCall Special
-" hi def link Noise NONE
-" hi def link Parameters NONE
+fun s:getconfig(prefix, keys, default)
+    if len(a:keys) == 0
+        return a:default
+    else
+        return get(g:, a:prefix.a:keys[0], s:getconfig(a:prefix, a:keys[1:], a:default))
+    endif
+endfun
+
+fun s:HiConfig(group, options)
+    let l:opt = s:getconfig('go_highlight_', a:options, 1)
+    let l:cmd = ''
+
+    if type(l:opt) == v:t_string
+        if l:opt =~ '^[[:alnum:]]\+$'
+            exec 'hi link '.a:group.' '.l:opt
+        else
+            exec 'hi '.a:group.' '.l:opt
+        endif
+    elseif !l:opt
+        exec 'hi link '.a:group.' NONE'
+    endif
+endfun
+
+call s:HiConfig('goBraces',     ['braces'])
+call s:HiConfig('goBrackets',   ['brackets'])
+call s:HiConfig('goParens',     ['parens'])
+call s:HiConfig('goComma',      ['comma','separators'])
+call s:HiConfig('goDot',        ['dot','separators'])
+call s:HiConfig('goSemicolon',  ['semicolon','separators'])
+call s:HiConfig('goFuncName',   ['functions'])
+call s:HiConfig('goFuncParens', ['function_parens','parens'])
+call s:HiConfig('goFuncBraces', ['function_braces','braces'])
+call s:HiConfig('goFuncCall',   ['function_calls'])
+
+
+hi def link goBraces    Delimiter
+hi def link goBrackets  Delimiter
+hi def link goParens    Delimiter
+
+
+hi def link goFuncName       Function
+hi def link goFuncParens     Delimiter
+hi def link goReceiverParens goFuncParens
+hi def link goFuncCall       Type
+hi def link goFuncCallParens Delimiter
+hi def link goParam          Identifier
+" hi def link goFuncTypeParam goParam
+hi def link goFuncTypeParam NONE
+
+hi def link goGenerateComment PreProc
+hi def link goOperator        Operator
+hi def link goVarIdentifier   Identifier
+hi def link goStringFormat    SpecialChar
+hi def link goTypeDeclName    Typedef
 
 " Constants and Literals
 
@@ -305,35 +352,36 @@ hi def link goSimpleBuiltinTypes Type
 " Functions
 
 hi def link goFuncDecl Keyword
-hi def link goFuncName Function
+" hi def link goFuncName Function
 hi def link goFuncType goFuncDecl
 
 " Structs
 
-if get(g:, 'go_highlight_struct_correctly', 0)
-    hi def link goStructType Structure
-else
-    hi def link goStructType Keyword
-endif
-
+hi def link goStructType Keyword
 hi def link goStructTypeTag PreProc
 hi def link goStructTypeBraces goBraces
 
 hi def link goStringEscape Special
-hi def link goConstDecl    Keyword
-hi def link goVarDecl      Keyword
-hi def link goOperator     Operator
+hi def link goConstDecl    Statement
+hi def link goVarDecl      Statement
 
-hi def link goStringFormat       SpecialChar
-hi def link goShortVarDecl       Identifier
-hi def link goInlineShortVarDecl goShortVarDecl
+" Declarations
+
+" hi def link goVarIdentifier      Identifier
+hi def link goInlineShortVarDecl goVarIdentifier
+hi def link goShortVarDecl       goVarIdentifier
+hi def link goVarGroupIdentifier goVarIdentifier
+
+hi def link goConstDeclParens goParens
+hi def link goVarDeclParens   goParens
+
+
+
 hi def link goIf                 Conditional
 hi def link goReturn             Statement
 hi def link goTypeDecl           Keyword
-hi def link goTypeDeclName       Typedef
 hi def link goInterfaceType      goStructType
 hi def link goComment            Comment
-hi def link goGenerateComment    PreProc
 hi def link goCommentTodo        Todo
 
 " TODO: Figure out what this should be
@@ -347,15 +395,15 @@ hi def link goRuneLiteral         Character
 hi def link goMap                 goSimpleBuiltinTypes
 hi def link goElse                Conditional
 hi def link goTypeAssign          goOperator
-hi def link goTypeDeclGroupParens Parens
+hi def link goTypeDeclGroupParens goParens
 
 " " Keep this, but have an option to change it to 'Constant'
 " hi link goInvalidRuneLiteral Error
 
-hi def link goNoise Noise
-hi def link goDot goNoise
-hi def link goComma goNoise
-hi def link goSemicolon goNoise
+" hi def link goDelimiters Noise
+hi def link goDot       goOperator
+hi def link goComma     goOperator
+hi def link goSemicolon goOperator
 
 
 hi def link goPointer          goOperator
@@ -364,9 +412,9 @@ hi def link goSliceOrArrayType Special
 hi def link goChannel          Type
 hi def link goIota             Special
 hi def link goKeywords         Keyword
-hi def link goPackage          goKeywords
-hi def link goSwitch           goKeywords
-hi def link goSwitchKeywords   goKeywords
+hi def link goPackage          Keyword
+hi def link goSwitch           Conditional
+hi def link goSwitchKeywords   Conditional
 hi def link goNonPrimitiveType Type
 hi def link goPackageName      Special
 hi def link goVariadic         goOperator
@@ -377,17 +425,12 @@ hi def link goNewBuiltin        goBuiltins
 hi def link goMakeBuiltin       goBuiltins
 hi def link goTypeParamBrackets Special
 
-
-hi def link goBraces   Braces
-hi def link goBrackets Brackets
-hi def link goParens   Parens
-
 hi def link goForBraces       goBraces
-hi def link goFuncBraces      goBraces
 hi def link goIfBraces        goBraces
-hi def link goInterfaceBraces goBraces
 hi def link goSliceBraces     goBraces
 hi def link goStructBraces    goBraces
+hi def link goInterfaceBraces goBraces
+hi def link goFuncBraces      goBraces
 
 hi def link goMapBrackets goBrackets
 
@@ -395,47 +438,24 @@ hi def link goFuncCallParens        goParens
 hi def link goFuncMultiReturnParens goParens
 hi def link goImportParens          goParens
 
-hi def link FunctionParens Parens
-
-hi def link goFuncParens     FunctionParens
-hi def link goReceiverParens FunctionParens
-
-hi def link goFuncCall FunctionCall
-
-" TODO: Should this be "goParams" rather than "goParam"?
-hi def link goParam Parameters
-
-" TODO: This isn't standard
 hi def link goImportItem Special
 hi def link goTypeParens goParens
 
-hi def link goInterfaceMethod       Identifier
-hi def link goInterfaceMethodParens FunctionParens
-
-
-
-
-hi def link goConstDeclParens goParens
-hi def link goVarDeclParens   goParens
-
-
+hi def link goInterfaceMethod       goFuncName
+hi def link goInterfaceMethodParens goFuncParens
 
 
 " These groups are just used for structural purposes and don't really need to be
 " highlighted, hence no "def link"
 
-hi def link goVarIdentifier      NONE
-" hi link goVarIdentifier      Identifier
-hi def link goVarGroupIdentifier goVarIdentifier
-hi def link goFirstParen         NONE
-hi def link goFuncReturnType     NONE
-hi def link goFuncTypeParam      NONE
-hi def link goInvalidRuneLiteral NONE
-hi def link goNamedReturnValue   NONE
-hi def link goSliceItemType      NONE
-hi def link goStructTypeField    NONE
-hi def link goTypeConstraint     NONE
-hi def link goTypeParam          NONE
+hi link goFirstParen         NONE
+hi link goFuncReturnType     NONE
+hi link goInvalidRuneLiteral NONE
+hi link goNamedReturnValue   NONE
+hi link goSliceItemType      NONE
+hi link goStructTypeField    NONE
+hi link goTypeConstraint     NONE
+hi def link goTypeParam          Special
 
 let b:current_syntax = 'go'
 
