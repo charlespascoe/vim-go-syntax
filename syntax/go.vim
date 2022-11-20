@@ -295,8 +295,6 @@ syntax match goSliceItemType /(\|\%(\%(interface\|struct\)\s*{\|[^{()]\)\+/ cont
 
 syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=TOP,@Spell
 
-" syntax match goChannel /<-chan\|chan\%(<-\)\?/ contains=goOperator skipwhite nextgroup=@goType
-" syntax match goChannel /chan/ skipwhite nextgroup=@goType
 syntax match goChannel /<-chan/ skipwhite contains=goOperator nextgroup=@goType
 syntax match goChannel /chan\%(<-\)\?/ skipwhite contains=goOperator nextgroup=@goType
 
@@ -360,21 +358,18 @@ syntax match goTypeParam /\%(\%(^\|[\[,]\)\s*\)\@20<=\zs\K\k*/ contained skipemp
 " TODO: Specific operators
 syntax region goTypeConstraint start='\s'ms=e+1 end=/[,\]]/me=s-1 contained contains=@goType,goOperator
 
-
 syntax region goFuncParams      matchgroup=goFuncParens start='(' end=')' contained contains=goParam,goComma skipwhite nextgroup=goFuncReturnType,goFuncMultiReturn,goFuncBlock
 syntax match  goFuncReturnType  /\s*\zs(\@<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+{\@<!/ contained contains=@goType skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma skipempty skipwhite nextgroup=goFuncBlock
 " syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=@goType,goComma skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained contains=TOP,@Spell skipwhite nextgroup=goFuncCallArgs
 
-
 syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
 syntax region goReceiverBlock matchgroup=goReceiverParens start='(' end=')' contained contains=goParam
 
-" TODO: Check performance of the backtracking on these
-" These are both the same, only defined separately for highlighting purposes
-syntax match goNamedReturnValue /\%(^\|[(,]\)\@<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
-syntax match goFuncTypeParam    /\%(^\|[(,]\)\@<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
+" goNamedReturnValue and goFuncTypeParam are the same but defined separately for highlighting purposes
+syntax match goNamedReturnValue /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
+syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
 
 syntax keyword goReturn return
 
