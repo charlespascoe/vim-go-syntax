@@ -81,6 +81,11 @@ syntax match   goComma      /,/
 syntax match   goSemicolon  /;/
 syntax keyword goUnderscore _
 
+" This is defined early in the syntax file so other things can override it
+if s:HiConfig('goField', ['fields'], #{default: 0})
+    syntax match goField /\.\@1<=\K\k*/
+endif
+
 call s:HiConfig('goOperator',  ['operators'])
 call s:HiConfig('goDot',       ['dot','separators'])
 call s:HiConfig('goComma',     ['comma','separators'])
@@ -91,6 +96,7 @@ hi def link goDot        goOperator
 hi def link goComma      goOperator
 hi def link goSemicolon  goOperator
 hi def link goUnderscore Special
+hi def link goField      Identifier
 
 " }}} Misc
 
