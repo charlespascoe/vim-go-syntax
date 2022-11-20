@@ -16,7 +16,7 @@ syntax match  godocMethodDot /\./ contained nextgroup=goFuncName
 syntax keyword godocField field contained skipwhite nextgroup=godocFieldIdentifier
 syntax match   godocFieldIdentifier /\K\k*/ contained skipwhite nextgroup=@goType
 
-hi link godocFuncDecl        goFunc
+hi link godocFuncDecl        goFuncDecl
 hi link godocReceiverParens  goReceiverParens
 hi link godocField           Keyword
 hi link godocFieldIdentifier Identifier

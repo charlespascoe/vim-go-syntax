@@ -12,7 +12,7 @@ syntax case match
 " TODO: Syntax Folding
 
 " TODO: Is this correct?
-setlocal iskeyword=@,48-57,_,192-255
+syntax iskeyword @,48-57,_,192-255
 
 " TODO: Add support for defining multiple types at once
 " (https://go.dev/ref/spec#Underlying_types)
@@ -43,7 +43,7 @@ endfun
 
 fun s:HiConfig(group, option_names, opts={})
     " All syntax is highlighted by default, unless turned off by the user
-    let l:opt = s:getconfig('go_highlight_', a:option_names, 1)
+    let l:opt = s:getconfig('go_highlight_', a:option_names, get(a:opts, 'default', 1))
     let l:cmd = ''
 
     if type(l:opt) == v:t_string
@@ -176,15 +176,6 @@ hi def link goParens   Delimiter
 
 " Constants and Variables {{{
 
-syntax keyword goConstDecl const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
-syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
-
-syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP,@Spell
-syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP,@Spell
-
-syntax match goVarIdentifier      /\<\K\k*/ contained skipwhite nextgroup=@goType
-syntax match goVarGroupIdentifier /\%(\%(^\|;\|\%(const\|var\)\s\+(\?\)\s*\)\@40<=\K\k*/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=@goType
-
 " TODO: Is it possible to reduce duplication here? Remember performance!
 " NOTE: goShortVarDecl currently doesn't work inside one-line functions,
 " e.g func() any { a, b := f(); return a }
@@ -198,8 +189,17 @@ if get(g:, 'go_highlight_variable_assignments', 0)
     " NOTE: goVariableAssignment currently doesn't work inside one-line
     " functions, e.g func(a int) int { a = 123; return a }
     " TODO: Only valid operators?
-    syntax match goVariableAssignment /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
+    syntax match goVariableAssignment /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore
 endif
+
+syntax keyword goConstDecl const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
+syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
+
+syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP,@Spell
+syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP,@Spell
+
+syntax match goVarIdentifier      /\<\K\k*/ contained skipwhite nextgroup=@goType
+syntax match goVarGroupIdentifier /\%(\%(^\|;\|\%(const\|var\)\s\+(\?\)\s*\)\@40<=\K\k*/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=@goType
 
 call s:HiConfig('goVarIdentifier', ['variable_declarations'])
 call s:HiConfig('goShortVarDecl',  ['short_variable_declarations','variable_declarations'])
@@ -286,16 +286,19 @@ syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained 
 syntax match goChannel /<-chan/ skipwhite contains=goOperator nextgroup=@goType
 syntax match goChannel /chan\%(<-\)\?/ skipwhite contains=goOperator nextgroup=@goType
 
+
 call s:HiConfig('goTypeDeclName', ['types'])
 call s:HiConfig('goSliceOrArray', ['slice_brackets'])
+call s:HiConfig('goMapBrackets',  ['map_brackets'])
 
 hi def link goPointer               goOperator
 
-hi def link goTypeParens            goParens
+" goTypeDecl should technically link to Typedef, but it looks a bit odd.
 hi def link goTypeDecl              Keyword
+hi def link goTypeParens            goParens
 hi def link goTypeDeclGroupParens   goParens
 hi def link goTypeDeclName          Typedef
-hi def link goTypeParamBrackets     Special
+hi def link goTypeParamBrackets     goBrackets
 hi def link goTypeAssign            goOperator
 
 hi def link goPackageName           Special
@@ -303,8 +306,8 @@ hi def link goPackageName           Special
 hi def link goNonPrimitiveType      Type
 hi def link goSimpleBuiltinTypes    Type
 hi def link goMap                   goSimpleBuiltinTypes
-hi def link goMapBrackets           goBrackets
-hi def link goSliceOrArray          Special
+hi def link goMapBrackets           Delimiter
+hi def link goSliceOrArray          Delimiter
 hi def link goSliceOrArrayType      goSliceOrArray
 hi def link goSliceBraces           goBraces
 hi def link goChannel               Type
@@ -366,9 +369,10 @@ call s:HiConfig('goFuncName',   ['functions'])
 call s:HiConfig('goFuncParens', ['function_parens'])
 call s:HiConfig('goFuncBraces', ['function_braces'])
 call s:HiConfig('goParam',      ['function_parameters'])
+call s:HiConfig('goTypeParam',  ['type_parameters'])
 
 hi def link goFuncName              Function
-hi def link goFuncCall              Type
+hi def link goFuncCall              Function
 hi def link goFuncCallParens        goParens
 hi def link goFuncDecl              Keyword
 hi def link goFuncParens            goParens
@@ -380,9 +384,7 @@ hi def link goReceiverParens        goFuncParens
 hi def link goVariadic              goOperator
 
 hi def link goParam                 Identifier
-
-" TODO: Should this be Identifier instead of Special?
-hi def link goTypeParam             Special
+hi def link goTypeParam             Identifier
 
 
 " TODO: What to do with these?
@@ -434,23 +436,24 @@ hi def link goInterfaceMethodParens goFuncParens
 " }}} Structs and Interfaces
 
 
-" Make and New {{{
+" Builtins {{{
 
-syntax keyword goMakeBuiltin make nextgroup=goMakeBlock
-syntax region  goMakeBlock matchgroup=goParens start='(' end=')' contained contains=TOP,@Spell
-" TODO: Fix this (multiline)
-syntax match goFirstParen /\%(make(\)\@5<=/ contained skipempty skipwhite nextgroup=@goType containedin=goMakeBlock
-" syntax region goMakeType start='\%(\<make(\n\?\s*\)\@40<=' end=',\|$' contained containedin=goMakeBlock
-"contains=@goType
+syntax keyword goBuiltins append cap close complex copy delete imag len panic print println real recover skipwhite nextgroup=goFuncCallArgs
+
+syntax keyword goMakeBuiltin    make nextgroup=goMakeBlock
+syntax region  goMakeBlock      matchgroup=goFuncCallParens start='(' end=')' contained contains=TOP,@Spell
+syntax match   goMakeFirstParen /\%(make(\_[[:space:]]*\)\@20<=/ contained skipempty skipwhite nextgroup=@goType containedin=goMakeBlock
 
 syntax keyword goNewBuiltin new skipwhite nextgroup=goNewBlock
-syntax region  goNewBlock matchgroup=goParens start='(' end=')' contained contains=@goType
+syntax region  goNewBlock matchgroup=goFuncCallParens start='(' end=')' contained contains=@goType
+
+call s:HiConfig('goBuiltins', ['builtins'], #{offgroup: 'goFuncCall'})
 
 hi def link goBuiltins    Special
 hi def link goMakeBuiltin goBuiltins
 hi def link goNewBuiltin  goBuiltins
 
-" }}} Make and New
+" }}} Builtins
 
 " TODO: Field access?
 
@@ -463,7 +466,6 @@ syntax keyword goElse else
 
 syntax keyword goFor         for skipempty skipwhite nextgroup=goInlineShortVarDecl
 syntax keyword goForKeywords range break continue
-" TODO: Is 'range' technically an operator?
 
 syntax keyword goSwitch         switch skipwhite nextgroup=goInlineShortVarDecl
 syntax keyword goSelect         select
@@ -481,7 +483,17 @@ hi def link goSwitchKeywords goSwitch
 
 " }}} Flow Control
 
-" Labels TODO
+
+" Labels {{{
+
+syntax match goLabel /^\K\k*\ze:/
+
+call s:HiConfig('goLabel', ['labels'])
+
+hi def link goLabel Label
+
+" }}} Labels
+
 
 " Misc {{{
 
