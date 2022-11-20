@@ -1,9 +1,12 @@
-if exists("b:current_syntax") && !get(g:, 'go_highlight_override_existing_syntax', 1)
-  finish
+if !exists('main_syntax')
+    if exists("b:current_syntax") && !get(g:, 'go_highlight_override_existing_syntax', 1)
+        finish
+    endif
+
+    syntax sync fromstart
 endif
 
 syntax clear
-syntax sync fromstart
 syntax case match
 
 " TODO: Syntax Folding
@@ -185,7 +188,8 @@ syntax match goVarGroupIdentifier /\%(\%(^\|;\|\%(const\|var\)\s\+(\?\)\s*\)\@40
 " TODO: Is it possible to reduce duplication here? Remember performance!
 " NOTE: goShortVarDecl currently doesn't work inside one-line functions,
 " e.g func() any { a, b := f(); return a }
-syntax match goShortVarDecl       /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore contained containedin=goFuncBlock
+" TODO: Make these conditional? Or make goVariableAssignment not conditional?
+syntax match goShortVarDecl       /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore
 syntax match goInlineShortVarDecl /\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/        contains=goComma,goUnderscore contained
 
 syntax keyword goIota iota contained containedin=goConstDeclGroup
@@ -194,7 +198,7 @@ if get(g:, 'go_highlight_variable_assignments', 0)
     " NOTE: goVariableAssignment currently doesn't work inside one-line
     " functions, e.g func(a int) int { a = 123; return a }
     " TODO: Only valid operators?
-    syntax match goVariableAssignment /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained containedin=goFuncBlock
+    syntax match goVariableAssignment /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
 endif
 
 call s:HiConfig('goVarIdentifier', ['variable_declarations'])
@@ -491,7 +495,8 @@ hi def link goKeywords Keyword
 
 " }}} Misc
 
-
-let b:current_syntax = 'go'
+if !exists('main_syntax')
+    let b:current_syntax = 'go'
+endif
 
 " vim:tw=80:fdm=marker:fmr={{{,}}}:
