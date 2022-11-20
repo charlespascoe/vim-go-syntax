@@ -52,9 +52,13 @@ fun s:HiConfig(group, option_names, opts={})
         else
             exec 'hi '.a:group.' '.l:opt
         endif
+
+        return 1
     elseif !l:opt
         exec 'hi link '.a:group.' '.get(a:opts, 'offgroup', 'NONE')
     endif
+
+    return l:opt
 endfun
 
 if get(g:, 'go_highlight_string_spellcheck', 1)
@@ -176,20 +180,23 @@ hi def link goParens   Delimiter
 
 " Constants and Variables {{{
 
-" TODO: Is it possible to reduce duplication here? Remember performance!
-" NOTE: goShortVarDecl currently doesn't work inside one-line functions,
-" e.g func() any { a, b := f(); return a }
-" TODO: Make these conditional? Or make goVariableAssignment not conditional?
-syntax match goShortVarDecl       /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore
-syntax match goInlineShortVarDecl /\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/        contains=goComma,goUnderscore contained
+" goVarAssign and goShortVarDecl
 
-syntax keyword goIota iota contained containedin=goConstDeclGroup
+let s:assignOrShortDecl = 0
 
-if get(g:, 'go_highlight_variable_assignments', 0)
-    " NOTE: goVariableAssignment currently doesn't work inside one-line
-    " functions, e.g func(a int) int { a = 123; return a }
+if s:HiConfig('goVarAssign', ['variable_assignments'], #{default: 0})
     " TODO: Only valid operators?
-    syntax match goVariableAssignment /^\s*\zs\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore
+    syntax match goVarAssign /\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
+    let s:assignOrShortDecl = 1
+endif
+
+if s:HiConfig('goShortVarDecl', ['short_variable_declarations','variable_declarations'])
+    syntax match goShortVarDecl /\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore contained
+    let s:assignOrShortDecl = 1
+endif
+
+if s:assignOrShortDecl
+    syntax match goStatementStart /\%(^\|[{;]\)\@1<=\s*\ze\K/ nextgroup=goVarAssign,goShortVarDecl
 endif
 
 syntax keyword goConstDecl const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
@@ -199,10 +206,11 @@ syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' co
 syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP,@Spell
 
 syntax match goVarIdentifier      /\<\K\k*/ contained skipwhite nextgroup=@goType
-syntax match goVarGroupIdentifier /\%(\%(^\|;\|\%(const\|var\)\s\+(\?\)\s*\)\@40<=\K\k*/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=@goType
+syntax match goVarGroupIdentifier /\%(^\|;\|\%(const\|var\)\s\+(\)\@20<=\s*\zs\K\k*/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=@goType
+
+syntax keyword goIota iota contained containedin=goConstDeclGroup
 
 call s:HiConfig('goVarIdentifier', ['variable_declarations'])
-call s:HiConfig('goShortVarDecl',  ['short_variable_declarations','variable_declarations'])
 
 hi def link goConstDecl          Statement
 hi def link goVarDecl            Statement
@@ -213,9 +221,9 @@ hi def link goVarDeclParens      goParens
 hi def link goVarIdentifier      Identifier
 hi def link goVarGroupIdentifier goVarIdentifier
 hi def link goShortVarDecl       Identifier
-hi def link goInlineShortVarDecl goShortVarDecl
+hi def link goShortVarDecl goShortVarDecl
 
-hi def link goVariableAssignment Special
+hi def link goVarAssign          Special
 
 hi def link goIota               Special
 
@@ -459,15 +467,15 @@ hi def link goNewBuiltin  goBuiltins
 
 " Flow Control {{{
 
-" TODO: Figure out how to remove goInlineShortVarDecl; this could simplify if,
+" TODO: Figure out how to remove goShortVarDecl; this could simplify if,
 " for, and switch
-syntax keyword goIf   if skipempty skipwhite nextgroup=goInlineShortVarDecl
+syntax keyword goIf   if skipempty skipwhite nextgroup=goShortVarDecl
 syntax keyword goElse else
 
-syntax keyword goFor         for skipempty skipwhite nextgroup=goInlineShortVarDecl
+syntax keyword goFor         for skipempty skipwhite nextgroup=goShortVarDecl
 syntax keyword goForKeywords range break continue
 
-syntax keyword goSwitch         switch skipwhite nextgroup=goInlineShortVarDecl
+syntax keyword goSwitch         switch skipwhite nextgroup=goShortVarDecl
 syntax keyword goSelect         select
 syntax keyword goSwitchKeywords case fallthrough default
 
