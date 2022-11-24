@@ -83,7 +83,7 @@ syntax keyword goUnderscore _
 
 " This is defined early in the syntax file so other things can override it
 if s:HiConfig('goField', ['fields'], #{default: 0})
-    syntax match goField /\.\@1<=\K\k*/
+    syntax match goField /\.\@1<=\w\+/
 endif
 
 call s:HiConfig('goOperator',  ['operators'])
@@ -192,12 +192,12 @@ let s:assignOrShortDecl = 0
 
 if s:HiConfig('goVarAssign', ['variable_assignments'], #{default: 0})
     " TODO: Only valid operators?
-    syntax match goVarAssign /\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
+    syntax match goVarAssign /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
     let s:assignOrShortDecl = 1
 endif
 
 if s:HiConfig('goShortVarDecl', ['short_variable_declarations','variable_declarations'])
-    syntax match goShortVarDecl /\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore contained
+    syntax match goShortVarDecl /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore contained
     let s:assignOrShortDecl = 1
 endif
 
@@ -211,8 +211,8 @@ syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,g
 syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP,@Spell
 syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP,@Spell
 
-syntax match goVarIdentifier      /\<\K\k*/ contained skipwhite nextgroup=@goType
-syntax match goVarGroupIdentifier /\%(^\|;\|\%(const\|var\)\s\+(\)\@20<=\s*\zs\K\k*/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=@goType
+syntax match goVarIdentifier      /\<\w\+/ contained skipwhite nextgroup=@goType
+syntax match goVarGroupIdentifier /\%(^\|;\|\%(const\|var\)\s\+(\)\@20<=\s*\zs\w\+/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=@goType
 
 syntax keyword goIota iota contained containedin=goConstDeclGroup
 
@@ -241,7 +241,7 @@ hi def link goIota               Special
 syntax keyword goPackage      package
 syntax keyword goImport       import skipwhite nextgroup=goImportItem,goImports
 syntax region  goImports      matchgroup=goImportParens start='(' end=')' contained contains=goImportItem,goComment
-syntax match   goImportItem   /\(\([\._]\|\K\k*\)\s\+\)\?"[^"]*"/ contained contains=goImportString
+syntax match   goImportItem   /\(\([\._]\|\w\+\)\s\+\)\?"[^"]*"/ contained contains=goImportString
 syntax region  goImportString start='"' end='"' keepend contained
 
 hi def link goPackage      Keyword
@@ -260,14 +260,14 @@ syntax region goTypeParens start='(' end=')' contained contains=@goType
 
 syntax keyword goTypeDecl type skipempty skipwhite nextgroup=goTypeDeclName,goTypeDeclGroup
 syntax region  goTypeDeclGroup matchgroup=goTypeDeclGroupParens start='(' end=')' contained contains=goTypeDeclName,goComment
-syntax match   goTypeDeclName /\K\k*/ contained skipempty skipwhite nextgroup=goTypeDeclTypeParams,goTypeAssign,@goType
+syntax match   goTypeDeclName /\w\+/ contained skipempty skipwhite nextgroup=goTypeDeclTypeParams,goTypeAssign,@goType
 syntax region  goTypeDeclTypeParams matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=goTypeParam,goComma nextgroup=@goType
 syntax match   goTypeAssign /=/ contained skipwhite nextgroup=@goType
 
 syntax cluster goType contains=goSimpleBuiltinTypes,goFuncType,goStructType,goInterfaceType,goMap,goSliceOrArrayType,goChannel,goNonPrimitiveType,goPointer,goTypeParens
 
-syntax match goNonPrimitiveType /\%(\K\k*\.\)*\K\k*\[\?/ contained contains=goPackageName,goDot,goTypeArgs
-syntax match goPackageName /[\.[:keyword:]]\@1<!\K\k*\ze\./ contained
+syntax match goNonPrimitiveType /\<\w\+\%(\.\w\+\)\?\[\?/ contained contains=goPackageName,goDot,goTypeArgs
+syntax match goPackageName /[\.[:alnum:]]\@1<!\<\w\+\ze\./ contained
 
 " TODO: Try to reduce type arg declarations
 syntax region goTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma
@@ -286,7 +286,7 @@ syntax match goSliceOrArrayType /\[\%(\d\+\|\.\.\.\)\?\]/ contained contains=goN
 
 " A lookbehind is used to distinguish a new slice value with slice indexing.
 " The lookbehind has variable length, so it has a reasonable 20 character limit
-syntax match goSliceOrArray /\k\@<!\[\%(\d\+\|\.\.\.\)\?\]\ze\%(\K\|\[\|(\)/ contains=goNumber,goDot skipwhite nextgroup=goSliceItemType
+syntax match goSliceOrArray /\w\@<!\[\%(\d\+\|\.\.\.\)\?\]\ze\%(\w\|\[\|(\)/ contains=goNumber,goDot skipwhite nextgroup=goSliceItemType
 
 " Only look to the end of the line for the item type, and let slices etc. extend
 " across lines as necessary. Note the first '(' is to match the first paren
@@ -333,7 +333,7 @@ hi def link goFuncType              goFuncDecl
 " Functions {{{
 
 " Unfortunately limited to at most 3 nested type args
-syntax match  goFuncCall /\v<\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ nextgroup=goFuncCallTypeArgs,goFuncCallArgs
+syntax match  goFuncCall /\v<\w+\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ contained containedin=goFuncBlock,goStructBlock,goVarDeclGroup,goConstDeclGroup,goFuncCallArgs,goMakeBlock nextgroup=goFuncCallTypeArgs,goFuncCallArgs
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goFuncCallArgs
 syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=TOP,@Spell
 
@@ -342,15 +342,15 @@ syntax keyword goFuncDecl func skipempty skipwhite nextgroup=goMethodReceiver,go
 syntax match goVariadic /\.\.\./ contained skipwhite nextgroup=@goType
 
 " TODO: Should this be "goParams" rather than "goParam"?
-syntax match goParam /^\s*\zs\K\k*/               contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
-syntax match goParam /\%([(,]\s*\)\@20<=\zs\K\k*/ contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
+syntax match goParam /^\s*\zs\w\+/               contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
+syntax match goParam /\%([(,]\s*\)\@20<=\zs\w\+/ contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
 
-syntax match goFuncName /\K\k*/ contained skipwhite nextgroup=goFuncTypeParams,goFuncParams
+syntax match goFuncName /\w\+/ contained skipwhite nextgroup=goFuncTypeParams,goFuncParams
 
 syntax region goFuncTypeParams matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=goTypeParam,goComma nextgroup=goFuncParams
 
 " TODO: is skipempty needed?
-syntax match goTypeParam /\%(\%(^\|[\[,]\)\s*\)\@20<=\zs\K\k*/ contained skipempty skipwhite nextgroup=goTypeParam,goTypeConstraint
+syntax match goTypeParam /\%(\%(^\|[\[,]\)\s*\)\@20<=\zs\w\+/ contained skipempty skipwhite nextgroup=goTypeParam,goTypeConstraint
 
 " This is a region to allow use of types that have commas (e.g. function
 " definitions) or nested type parameters, because they will automatically extend
@@ -364,12 +364,12 @@ syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end
 " syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=@goType,goComma skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained contains=TOP,@Spell skipwhite nextgroup=goFuncCallArgs
 
-syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
+syntax match  goMethodReceiver /([^,]\+)\ze\s\+\w\+\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
 syntax region goReceiverBlock matchgroup=goReceiverParens start='(' end=')' contained contains=goParam
 
 " goNamedReturnValue and goFuncTypeParam are the same but defined separately for highlighting purposes
-syntax match goNamedReturnValue /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
-syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
+syntax match goNamedReturnValue /\%(^\|[(,]\)\@1<=\s*\zs\%(\w\+\%(\s*,\%(\s\|\n\)*\w\+\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
+syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\w\+\%(\s*,\%(\s\|\n\)*\w\+\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
 
 syntax keyword goReturn return
 
@@ -411,12 +411,12 @@ syntax keyword goStructType struct skipempty skipwhite nextgroup=goStructTypeBlo
 syntax region  goStructTypeBlock matchgroup=goStructTypeBraces start='{' end='}' extend contained contains=goEmbeddedType,goStructTypeField,goComment,goStructTypeTag,goDot,goSemicolon
 syntax region  goStructTypeTag start='`' end='`' contained
 syntax region  goStructTypeTag start='"' skip='\\"' end='"' oneline contained
-syntax match   goStructTypeField /\%(_\|\K\k*\)\%(,\s*\%(_\|\K\k*\)\)*/ contained skipwhite contains=goComma,goUnderscore nextgroup=@goType
-syntax match   goEmbeddedType /\*\?\%(\K\k*\.\)\?\K\k*\%#\@<!$/ contained contains=@goType
+syntax match   goStructTypeField /\%(_\|\w\+\)\%(,\s*\%(_\|\w\+\)\)*/ contained skipwhite contains=goComma,goUnderscore nextgroup=@goType
+syntax match   goEmbeddedType /\*\?\w\+\%(\.\w\+\)\?\%#\@1<!$/ contained contains=@goType
 
 " It is technically possible to have a space between a struct name and the
 " braces, but it's hard to reliably highlight
-syntax match  goStructValue /\v<%(\K\k*\.)*\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
+syntax match  goStructValue /\v<\w+%(\.\w+)?\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
 syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP,@Spell
 
@@ -424,7 +424,7 @@ syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfa
 " TODO: Maybe don't just put goOperator in here and instead use the correct
 " symbols
 syntax region goInterfaceBlock matchgroup=goInterfaceBraces start='{' end='}' contained extend contains=@goType,goOperator,goInterfaceMethod,goComment
-syntax match  goInterfaceMethod /\K\k*\ze\s*(/ contained skipwhite nextgroup=goInterfaceMethodParams
+syntax match  goInterfaceMethod /\<\w\+\ze\s*(/ contained skipwhite nextgroup=goInterfaceMethodParams
 syntax region goInterfaceMethodParams matchgroup=goInterfaceMethodParens start='(' end=')' contained contains=goFuncTypeParam,goComma skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
 syntax region goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
 
@@ -495,7 +495,7 @@ hi def link goSwitchKeywords goSwitch
 
 " Labels {{{
 
-syntax match goLabel /^\K\k*\ze:/
+syntax match goLabel /^\w\+\ze:/
 
 call s:HiConfig('goLabel', ['labels'])
 
