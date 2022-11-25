@@ -48,7 +48,7 @@ fun! s:FindAllPackageNames()
 endfun
 
 fun! s:RefreshPackageHighlighting()
-    if !get(g:, 'go_highlight_override_existing_syntax', 1)
+    if !get(b:, '__vim_go_syntax', 0)
         return
     endif
 
@@ -59,12 +59,12 @@ fun! s:RefreshPackageHighlighting()
     end
 
     if len(l:packages) > 0
-        " TODO: Try to handle cases where the packge name happens to be a field
-        " that is a struct that is spread across multiple lines (e.g.
-        " `foo.\ntime.\nblah`)
         exec 'syn keyword goPackageCustomNames '..join(l:packages, ' ')
         hi link goPackageCustomNames goPackageName
     end
 endfun
 
-au CursorHold,CursorHoldI <buffer> call <SID>RefreshPackageHighlighting()
+if get(g:, 'go_highlight_packages', 1)
+    au CursorHold,CursorHoldI <buffer> call <SID>RefreshPackageHighlighting()
+    au BufEnter <buffer> ++once call <SID>RefreshPackageHighlighting()
+endif

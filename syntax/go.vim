@@ -6,6 +6,8 @@ if !exists('main_syntax')
     syntax sync fromstart
 endif
 
+let b:__vim_go_syntax = 1
+
 syntax clear
 syntax case match
 
