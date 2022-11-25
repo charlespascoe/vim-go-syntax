@@ -11,9 +11,6 @@ syntax case match
 
 " TODO: Syntax Folding
 
-" TODO: Is this correct?
-syntax iskeyword @,48-57,_,192-255
-
 " TODO: Add support for defining multiple types at once
 " (https://go.dev/ref/spec#Underlying_types)
 
