@@ -81,7 +81,7 @@ endif
 " though it were a field. This has a small performance cost, but it prevents odd
 " behaviour while allowing us to highlight fields spread across multiple lines.
 syntax match goDot     /\./       contained
-syntax match goDotExpr /\.\%#\@!/ contained containedin=goFuncBlock,goStructBlock skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField
+syntax match goDotExpr /\.\%#\@!/ skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField,goStructValue
 
 " TODO: Only valid operators?
 syntax match   goOperator     /[-+*/!:=%&^<>|~]\+/
