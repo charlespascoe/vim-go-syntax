@@ -487,6 +487,10 @@ syntax keyword goForKeywords range break continue
 syntax keyword goSwitch         switch skipwhite nextgroup=goShortVarDecl
 syntax keyword goSelect         select
 syntax keyword goSwitchKeywords case fallthrough default
+syntax keyword goSwitchKeywords fallthrough default
+
+syntax match  goSwitchTypeCase  /^\s\+case\s/ contained containedin=goSwitchTypeBlock skipwhite nextgroup=@goType
+syntax region goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}' contained contains=TOP,@Spell
 
 hi def link goIf   Conditional
 hi def link goElse goIf
@@ -497,6 +501,9 @@ hi def link goForKeywords goFor
 hi def link goSwitch         Conditional
 hi def link goSelect         goSwitch
 hi def link goSwitchKeywords goSwitch
+
+hi def link goSwitchTypeBraces goBraces
+hi def link goSwitchTypeCase   goSwitchKeywords
 
 " }}} Flow Control
 
@@ -518,7 +525,8 @@ hi def link goLabel Label
 syntax keyword goKeywords defer go
 
 " goTypeAssertion is a part of the nextgroup list of goDotExpr
-syntax region goTypeAssertion matchgroup=goParens start=/(/ end=/)/ contained  contains=@goType,goTypeDecl
+syntax region goTypeAssertion matchgroup=goParens start=/(/ end=/)/ contained contains=@goType,goTypeDecl
+syntax match  goTypeAssertion /(type)/ contained contains=goParenBlock,goTypeDecl skipwhite nextgroup=goSwitchTypeBlock
 
 hi def link goKeywords Keyword
 
