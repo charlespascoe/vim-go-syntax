@@ -75,8 +75,13 @@ endif
 " goDot is used to highlight a dot in non-expression contexts (e.g. the dot
 " between a package and a type). By separating these two, it significantly
 " improves the performance of searching for fields and type assertions.
-syntax match goDot     /\./ contained
-syntax match goDotExpr /\./ contained containedin=goFuncBlock,goStructBlock nextgroup=goFuncCall,goTypeAssertion,goField
+"
+" Note that goDotExpr checks to see if the cursor is at the end so that while
+" the user is typing, it doesn't highlight the statement on the next line as
+" though it were a field. This has a small performance cost, but it prevents odd
+" behaviour while allowing us to highlight fields spread across multiple lines.
+syntax match goDot     /\./       contained
+syntax match goDotExpr /\.\%#\@!/ contained containedin=goFuncBlock,goStructBlock skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField
 
 " TODO: Only valid operators?
 syntax match   goOperator     /[-+*/!:=%&^<>|~]\+/
