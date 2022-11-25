@@ -71,11 +71,12 @@ endif
 
 " Misc {{{
 
-" goDot matches a dot that is generally found in Go code, whereas goContainedDot
-" is used in 'contains' statements to prevent 'nextgroup' from affecting matches
-" where we already know what syntax to expect.
-syntax match   goDot          /\./ nextgroup=goFuncCall,goTypeAssertion,goField
-syntax match   goContainedDot /\./ contained
+" goDotExpr matches a dot that is found as a part of an expression, whereas
+" goDot is used to highlight a dot in non-expression contexts (e.g. the dot
+" between a package and a type). By separating these two, it significantly
+" improves the performance of searching for fields and type assertions.
+syntax match goDot     /\./ contained
+syntax match goDotExpr /\./ contained containedin=goFuncBlock,goStructBlock nextgroup=goFuncCall,goTypeAssertion,goField
 
 " TODO: Only valid operators?
 syntax match   goOperator     /[-+*/!:=%&^<>|~]\+/
@@ -95,12 +96,11 @@ call s:HiConfig('goSemicolon', ['semicolon','separators'])
 
 hi def link goOperator   Operator
 hi def link goDot        goOperator
+hi def link goDotExpr    goDot
 hi def link goComma      goOperator
 hi def link goSemicolon  goOperator
 hi def link goUnderscore Special
 hi def link goField      Identifier
-
-hi def link goContainedDot        goDot
 
 " }}} Misc
 
@@ -274,7 +274,7 @@ syntax match   goTypeAssign /=/ contained skipwhite nextgroup=@goType
 
 syntax cluster goType contains=goSimpleBuiltinTypes,goFuncType,goStructType,goInterfaceType,goMap,goSliceOrArrayType,goChannel,goNonPrimitiveType,goPointer,goTypeParens
 
-syntax match goNonPrimitiveType /\<\w\+\%(\.\w\+\)\?\[\?/ contained contains=goPackageName,goContainedDot,goTypeArgs
+syntax match goNonPrimitiveType /\<\w\+\%(\.\w\+\)\?\[\?/ contained contains=goPackageName,goDot,goTypeArgs
 syntax match goPackageName /[\.[:alnum:]]\@1<!\<\w\+\ze\./ contained
 
 " TODO: Try to reduce type arg declarations
@@ -290,11 +290,11 @@ syntax region goFuncTypeMultiReturnType matchgroup=goFuncMultiReturnParens start
 syntax keyword goMap map skipempty skipwhite nextgroup=goMapKeyType
 syntax region  goMapKeyType matchgroup=goMapBrackets start='\[' end='\]' contained contains=@goType skipwhite nextgroup=@goType
 
-syntax match goSliceOrArrayType /\[\%(\d\+\|\.\.\.\)\?\]/ contained contains=goNumber,goContainedDot skipwhite nextgroup=@goType
+syntax match goSliceOrArrayType /\[\%(\d\+\|\.\.\.\)\?\]/ contained contains=goNumber,goDot skipwhite nextgroup=@goType
 
 " A lookbehind is used to distinguish a new slice value with slice indexing.
 " The lookbehind has variable length, so it has a reasonable 20 character limit
-syntax match goSliceOrArray /\w\@<!\[\%(\d\+\|\.\.\.\)\?\]\ze\%(\w\|\[\|(\)/ contains=goNumber,goContainedDot skipwhite nextgroup=goSliceItemType
+syntax match goSliceOrArray /\w\@<!\[\%(\d\+\|\.\.\.\)\?\]\ze\%(\w\|\[\|(\)/ contains=goNumber,goDot skipwhite nextgroup=goSliceItemType
 
 " Only look to the end of the line for the item type, and let slices etc. extend
 " across lines as necessary. Note the first '(' is to match the first paren
@@ -416,7 +416,7 @@ hi def link goReturn                Statement
 " Structs and Interfaces {{{
 
 syntax keyword goStructType struct skipempty skipwhite nextgroup=goStructTypeBlock
-syntax region  goStructTypeBlock matchgroup=goStructTypeBraces start='{' end='}' extend contained contains=goEmbeddedType,goStructTypeField,goComment,goStructTypeTag,goContainedDot,goSemicolon
+syntax region  goStructTypeBlock matchgroup=goStructTypeBraces start='{' end='}' extend contained contains=goEmbeddedType,goStructTypeField,goComment,goStructTypeTag,goDot,goSemicolon
 syntax region  goStructTypeTag start='`' end='`' contained
 syntax region  goStructTypeTag start='"' skip='\\"' end='"' oneline contained
 syntax match   goStructTypeField /\%(_\|\w\+\)\%(,\s*\%(_\|\w\+\)\)*/ contained skipwhite contains=goComma,goUnderscore nextgroup=@goType
@@ -424,7 +424,7 @@ syntax match   goEmbeddedType /\*\?\w\+\%(\.\w\+\)\?\%#\@1<!$/ contained contain
 
 " It is technically possible to have a space between a struct name and the
 " braces, but it's hard to reliably highlight
-syntax match  goStructValue /\v<\w+%(\.\w+)?\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goContainedDot nextgroup=goStructValueTypeArgs,goStructBlock
+syntax match  goStructValue /\v<\w+%(\.\w+)?\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
 syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP,@Spell
 
@@ -517,7 +517,7 @@ hi def link goLabel Label
 " TODO: Make this a catch-all for various keywords
 syntax keyword goKeywords defer go
 
-" goTypeAssertion is a part of the nextgroup list of goDot
+" goTypeAssertion is a part of the nextgroup list of goDotExpr
 syntax region goTypeAssertion matchgroup=goParens start=/(/ end=/)/ contained  contains=@goType,goTypeDecl
 
 hi def link goKeywords Keyword
