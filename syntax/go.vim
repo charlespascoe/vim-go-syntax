@@ -280,7 +280,7 @@ syntax match   goTypeAssign /=/ contained skipwhite nextgroup=@goType
 syntax cluster goType contains=goSimpleBuiltinTypes,goFuncType,goStructType,goInterfaceType,goMap,goSliceOrArrayType,goChannel,goNonPrimitiveType,goPointer,goTypeParens
 
 syntax match goNonPrimitiveType /\<\w\+\%(\.\w\+\)\?\[\?/ contained contains=goPackageName,goDot,goTypeArgs
-syntax match goPackageName /[\.[:alnum:]]\@1<!\<\w\+\ze\./ contained
+syntax match goPackageName /\<\w\+\ze\./ contained nextgroup=goDot
 
 " TODO: Try to reduce type arg declarations
 syntax region goTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma

@@ -62,7 +62,7 @@ fun! s:RefreshPackageHighlighting()
         " TODO: Try to handle cases where the packge name happens to be a field
         " that is a struct that is spread across multiple lines (e.g.
         " `foo.\ntime.\nblah`)
-        exec 'syn match goPackageCustomNames /[\.[:keyword:]]\@1<!\%('..join(l:packages, '\|')..'\)\ze\./'
+        exec 'syn keyword goPackageCustomNames '..join(l:packages, ' ')
         hi link goPackageCustomNames goPackageName
     end
 endfun
