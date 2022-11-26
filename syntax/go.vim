@@ -360,7 +360,8 @@ syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end='
 
 syntax keyword goFuncDecl func skipempty skipwhite nextgroup=goMethodReceiver,goFuncName,goFuncParams
 
-syntax match goVariadic /\.\.\./ contained skipwhite nextgroup=@goType
+syntax match goVariadic  /\.\.\./ contained skipwhite nextgroup=@goType
+syntax match goArgSpread /\.\.\./ contained containedin=goFuncCallArgs
 
 " TODO: Should this be "goParams" rather than "goParam"?
 syntax match goParam /^\s*\zs\w\+/               contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
@@ -388,9 +389,8 @@ syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained co
 syntax match  goMethodReceiver /([^,]\+)\ze\s\+\w\+\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
 syntax region goReceiverBlock matchgroup=goReceiverParens start='(' end=')' contained contains=goParam
 
-" goNamedReturnValue and goFuncTypeParam are the same but defined separately for highlighting purposes
+syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\w\+\%(\s*,\%(\s\|\n\)*\w\+\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType,goVariadic
 syntax match goNamedReturnValue /\%(^\|[(,]\)\@1<=\s*\zs\%(\w\+\%(\s*,\%(\s\|\n\)*\w\+\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
-syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\w\+\%(\s*,\%(\s\|\n\)*\w\+\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
 
 syntax keyword goReturn return
 
@@ -405,6 +405,7 @@ hi link goFuncMultiReturnParens goParens
 hi link goReceiverParens        goFuncParens
 
 hi link goVariadic              goOperator
+hi link goArgSpread             goVariadic
 
 hi link goParam                 Identifier
 hi link goTypeParam             Identifier
