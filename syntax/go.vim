@@ -4,9 +4,9 @@ if !exists('main_syntax')
     endif
 
     syntax sync fromstart
-endif
 
-let b:__vim_go_syntax = 1
+    let b:__vim_go_syntax = 1
+endif
 
 syntax clear
 syntax case match
@@ -40,17 +40,17 @@ syntax iskeyword @,48-57,_,192-255,:
 
 " Config Utils {{{
 
-fun s:getconfig(prefix, keys, default)
+fun s:getconfig(keys, default)
     if len(a:keys) == 0
         return a:default
     else
-        return get(g:, a:prefix.a:keys[0], s:getconfig(a:prefix, a:keys[1:], a:default))
+        return get(g:, a:keys[0], s:getconfig(a:keys[1:], a:default))
     endif
 endfun
 
 fun s:HiConfig(group, option_names, opts={})
     " All syntax is highlighted by default, unless turned off by the user
-    let l:opt = s:getconfig('go_highlight_', a:option_names, get(a:opts, 'default', 1))
+    let l:opt = s:getconfig(a:option_names, get(a:opts, 'default', 1))
     let l:cmd = ''
 
     if type(l:opt) == v:t_string
@@ -99,19 +99,19 @@ syntax match   goComma        /,/
 syntax match   goSemicolon    /;/
 syntax keyword goUnderscore   _
 
-call s:HiConfig('goField',     ['fields'], #{default: 0})
-call s:HiConfig('goOperator',  ['operators'])
-call s:HiConfig('goDot',       ['dot','separators'])
-call s:HiConfig('goComma',     ['comma','separators'])
-call s:HiConfig('goSemicolon', ['semicolon','separators'])
+hi link goOperator   Operator
+hi link goDot        goOperator
+hi link goDotExpr    goDot
+hi link goComma      goOperator
+hi link goSemicolon  goOperator
+hi link goUnderscore Special
+hi link goField      Identifier
 
-hi def link goOperator   Operator
-hi def link goDot        goOperator
-hi def link goDotExpr    goDot
-hi def link goComma      goOperator
-hi def link goSemicolon  goOperator
-hi def link goUnderscore Special
-hi def link goField      Identifier
+call s:HiConfig('goField',     ['go_highlight_fields'], #{default: 0})
+call s:HiConfig('goOperator',  ['go_highlight_operators'])
+call s:HiConfig('goDot',       ['go_highlight_dot','go_highlight_separators'])
+call s:HiConfig('goComma',     ['go_highlight_comma','go_highlight_separators'])
+call s:HiConfig('goSemicolon', ['go_highlight_semicolon','go_highlight_separators'])
 
 " }}} Misc
 
@@ -123,11 +123,11 @@ syntax region  goComment         start=+//+  end=+$+   contains=@goCommentSpell,
 syntax region  goComment         start=+/\*+ end=+\*/+ contains=@goCommentSpell,goCommentTodo keepend
 syntax match   goGenerateComment +//go:generate.*$+
 
-call s:HiConfig('goGenerateComment', ['generate_tags'], #{offgroup: 'goComment'})
+hi link goCommentTodo     Todo
+hi link goComment         Comment
+hi link goGenerateComment PreProc
 
-hi def link goCommentTodo     Todo
-hi def link goComment         Comment
-hi def link goGenerateComment PreProc
+call s:HiConfig('goGenerateComment', ['go_highlight_generate_tags'], #{offgroup: 'goComment'})
 
 " }}} Comments
 
@@ -159,25 +159,25 @@ syntax keyword goBooleanFalse false
 
 syntax keyword goNil nil
 
-call s:HiConfig('goStringFormat',       ['format_strings'], #{offgroup: 'goString'})
-call s:HiConfig('goInvalidRuneLiteral', ['rune_literal_error'])
+hi link goString             String
+hi link goStringEscape       SpecialChar
+hi link goStringFormat       SpecialChar
 
-hi def link goString             String
-hi def link goStringEscape       SpecialChar
-hi def link goStringFormat       SpecialChar
+hi link goInvalidRuneLiteral Error
+hi link goRuneLiteral        Character
+hi link goRuneLiteralEscape  goStringFormat
 
-hi def link goInvalidRuneLiteral Error
-hi def link goRuneLiteral        Character
-hi def link goRuneLiteralEscape  goStringFormat
+hi link goRawString          String
 
-hi def link goRawString          String
+hi link goNumber             Number
 
-hi def link goNumber             Number
+hi link goBooleanTrue        Boolean
+hi link goBooleanFalse       Boolean
 
-hi def link goBooleanTrue        Boolean
-hi def link goBooleanFalse       Boolean
+hi link goNil                Constant
 
-hi def link goNil                Constant
+call s:HiConfig('goStringFormat',       ['go_highlight_format_strings'], #{offgroup: 'goString'})
+call s:HiConfig('goInvalidRuneLiteral', ['go_highlight_rune_literal_error'])
 
 " }}} Literals
 
@@ -188,13 +188,13 @@ syntax region goBracketBlock matchgroup=goBrackets start='\[' end='\]' transpare
 syntax region goParenBlock   matchgroup=goParens   start='('  end=')'  transparent extend
 syntax region goBraceBlock   matchgroup=goBraces   start='{'  end='}'  transparent extend
 
-call s:HiConfig('goBraces',   ['braces'])
-call s:HiConfig('goBrackets', ['brackets'])
-call s:HiConfig('goParens',   ['parens'])
+hi link goBraces   Delimiter
+hi link goBrackets Delimiter
+hi link goParens   Delimiter
 
-hi def link goBraces   Delimiter
-hi def link goBrackets Delimiter
-hi def link goParens   Delimiter
+call s:HiConfig('goBraces',   ['go_highlight_braces'])
+call s:HiConfig('goBrackets', ['go_highlight_brackets'])
+call s:HiConfig('goParens',   ['go_highlight_parens'])
 
 " }}} Simple Blocks
 
@@ -205,13 +205,13 @@ hi def link goParens   Delimiter
 
 let s:assignOrShortDecl = 0
 
-if s:HiConfig('goVarAssign', ['variable_assignments'], #{default: 0})
+if s:HiConfig('goVarAssign', ['go_highlight_variable_assignments'], #{default: 0})
     " TODO: Only valid operators?
     syntax match goVarAssign /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
     let s:assignOrShortDecl = 1
 endif
 
-if s:HiConfig('goShortVarDecl', ['short_variable_declarations','variable_declarations'])
+if s:HiConfig('goShortVarDecl', ['go_highlight_short_variable_declarations','go_highlight_variable_declarations'])
     syntax match goShortVarDecl /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore contained
     let s:assignOrShortDecl = 1
 endif
@@ -235,22 +235,22 @@ syntax match goVarGroupIdentifier /\%(^\|;\|\%(const\|var\)\s\+(\)\@20<=\s*\zs\w
 
 syntax keyword goIota iota contained containedin=goConstDeclGroup
 
-call s:HiConfig('goVarIdentifier', ['variable_declarations'])
+hi link goConstDecl          Statement
+hi link goVarDecl            Statement
 
-hi def link goConstDecl          Statement
-hi def link goVarDecl            Statement
+hi link goConstDeclParens    goParens
+hi link goVarDeclParens      goParens
 
-hi def link goConstDeclParens    goParens
-hi def link goVarDeclParens      goParens
+hi link goVarIdentifier      Identifier
+hi link goVarGroupIdentifier goVarIdentifier
+hi link goShortVarDecl       Identifier
+hi link goShortVarDecl goShortVarDecl
 
-hi def link goVarIdentifier      Identifier
-hi def link goVarGroupIdentifier goVarIdentifier
-hi def link goShortVarDecl       Identifier
-hi def link goShortVarDecl goShortVarDecl
+hi link goVarAssign          Special
 
-hi def link goVarAssign          Special
+hi link goIota               Special
 
-hi def link goIota               Special
+call s:HiConfig('goVarIdentifier', ['go_highlight_variable_declarations'])
 
 " }}} Constants and Variables
 
@@ -263,11 +263,11 @@ syntax region  goImports      matchgroup=goImportParens start='(' end=')' contai
 syntax match   goImportItem   /\(\([\._]\|\w\+\)\s\+\)\?"[^"]*"/ contained contains=goImportString
 syntax region  goImportString start='"' end='"' keepend contained
 
-hi def link goPackage      Keyword
-hi def link goImport       Keyword
-hi def link goImportItem   Special
-hi def link goImportString goString
-hi def link goImportParens goParens
+hi link goPackage      Keyword
+hi link goImport       Keyword
+hi link goImportItem   Special
+hi link goImportString goString
+hi link goImportParens goParens
 
 " }}} Packages
 
@@ -318,33 +318,33 @@ syntax match goChannel /<-chan/ skipwhite contains=goOperator nextgroup=@goType
 syntax match goChannel /chan\%(<-\)\?/ skipwhite contains=goOperator nextgroup=@goType
 
 
-call s:HiConfig('goTypeDeclName', ['types'])
-call s:HiConfig('goSliceOrArray', ['slice_brackets'])
-call s:HiConfig('goMapBrackets',  ['map_brackets'])
-
-hi def link goPointer               goOperator
+hi link goPointer               goOperator
 
 " goTypeDecl should technically link to Typedef, but it looks a bit odd.
-hi def link goTypeDecl              Keyword
-hi def link goTypeParens            goParens
-hi def link goTypeDeclGroupParens   goParens
-hi def link goTypeDeclName          Typedef
-hi def link goTypeParamBrackets     goBrackets
-hi def link goTypeAssign            goOperator
+hi link goTypeDecl              Keyword
+hi link goTypeParens            goParens
+hi link goTypeDeclGroupParens   goParens
+hi link goTypeDeclName          Typedef
+hi link goTypeParamBrackets     goBrackets
+hi link goTypeAssign            goOperator
 
-hi def link goPackageName           Special
+hi link goPackageName           Special
 
-hi def link goNonPrimitiveType      Type
-hi def link goSimpleBuiltinTypes    Type
-hi def link goMap                   goSimpleBuiltinTypes
-hi def link goMapBrackets           Delimiter
-hi def link goSliceOrArray          Delimiter
-hi def link goSliceOrArrayType      goSliceOrArray
-hi def link goSliceBraces           goBraces
-hi def link goChannel               Type
+hi link goNonPrimitiveType      Type
+hi link goSimpleBuiltinTypes    Type
+hi link goMap                   goSimpleBuiltinTypes
+hi link goMapBrackets           Delimiter
+hi link goSliceOrArray          Delimiter
+hi link goSliceOrArrayType      goSliceOrArray
+hi link goSliceBraces           goBraces
+hi link goChannel               Type
 
-hi def link goFuncType              goFuncDecl
+hi link goFuncType              goFuncDecl
 " See 'Functions' for other function highlight groups
+
+call s:HiConfig('goTypeDeclName', ['go_highlight_types'])
+call s:HiConfig('goSliceOrArray', ['go_highlight_slice_brackets'])
+call s:HiConfig('goMapBrackets',  ['go_highlight_map_brackets'])
 
 " }}} Types
 
@@ -394,34 +394,34 @@ syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\w\+\%(\s*,\%(\s\|\n\
 
 syntax keyword goReturn return
 
-call s:HiConfig('goFuncCall',   ['function_calls'])
-call s:HiConfig('goFuncName',   ['functions'])
-call s:HiConfig('goFuncParens', ['function_parens'])
-call s:HiConfig('goFuncBraces', ['function_braces'])
-call s:HiConfig('goParam',      ['function_parameters'])
-call s:HiConfig('goTypeParam',  ['type_parameters'])
+hi link goFuncName              Function
+hi link goFuncCall              Function
+hi link goFuncCallParens        goParens
+hi link goFuncDecl              Keyword
+hi link goFuncParens            goParens
+hi link goFuncBraces            goBraces
+hi link goFuncMultiReturnParens goParens
 
-hi def link goFuncName              Function
-hi def link goFuncCall              Function
-hi def link goFuncCallParens        goParens
-hi def link goFuncDecl              Keyword
-hi def link goFuncParens            goParens
-hi def link goFuncBraces            goBraces
-hi def link goFuncMultiReturnParens goParens
+hi link goReceiverParens        goFuncParens
 
-hi def link goReceiverParens        goFuncParens
+hi link goVariadic              goOperator
 
-hi def link goVariadic              goOperator
-
-hi def link goParam                 Identifier
-hi def link goTypeParam             Identifier
+hi link goParam                 Identifier
+hi link goTypeParam             Identifier
 
 
 " TODO: What to do with these?
-hi def link goNamedReturnValue      NONE
-hi def link goFuncTypeParam         NONE
+hi link goNamedReturnValue      NONE
+hi link goFuncTypeParam         NONE
 
-hi def link goReturn                Statement
+hi link goReturn                Statement
+
+call s:HiConfig('goFuncCall',   ['go_highlight_function_calls'])
+call s:HiConfig('goFuncName',   ['go_highlight_functions'])
+call s:HiConfig('goFuncParens', ['go_highlight_function_parens'])
+call s:HiConfig('goFuncBraces', ['go_highlight_function_braces'])
+call s:HiConfig('goParam',      ['go_highlight_function_parameters'])
+call s:HiConfig('goTypeParam',  ['go_highlight_type_parameters'])
 
 " }}} Functions
 
@@ -450,21 +450,21 @@ syntax match  goInterfaceMethod /\<\w\+\ze\s*(/ contained skipwhite nextgroup=go
 syntax region goInterfaceMethodParams matchgroup=goInterfaceMethodParens start='(' end=')' contained contains=goFuncTypeParam,goComma skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
 syntax region goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
 
-call s:HiConfig('goStructTypeTag',    ['struct_tags'])
-call s:HiConfig('goStructValueField', ['struct_fields'], #{default: 1})
+hi link goStructType       Keyword
+hi link goStructTypeBraces goBraces
+hi link goStructTypeField  NONE
+hi link goStructTypeTag    PreProc
+hi link goStructValue      goNonPrimitiveType
+hi link goStructValueField Identifier
+hi link goStructBraces     goBraces
 
-hi def link goStructType       Keyword
-hi def link goStructTypeBraces goBraces
-hi def link goStructTypeField  NONE
-hi def link goStructTypeTag    PreProc
-hi def link goStructValue      goNonPrimitiveType
-hi def link goStructValueField Identifier
-hi def link goStructBraces     goBraces
+hi link goInterfaceType         goStructType
+hi link goInterfaceBraces       goBraces
+hi link goInterfaceMethod       goFuncName
+hi link goInterfaceMethodParens goFuncParens
 
-hi def link goInterfaceType         goStructType
-hi def link goInterfaceBraces       goBraces
-hi def link goInterfaceMethod       goFuncName
-hi def link goInterfaceMethodParens goFuncParens
+call s:HiConfig('goStructTypeTag',    ['go_highlight_struct_tags'])
+call s:HiConfig('goStructValueField', ['go_highlight_struct_fields'], #{default: 1})
 
 " }}} Structs and Interfaces
 
@@ -480,11 +480,11 @@ syntax match   goMakeFirstParen /\%(make(\_[[:space:]]*\)\@20<=/ contained skipe
 syntax keyword goNewBuiltin new skipwhite nextgroup=goNewBlock
 syntax region  goNewBlock matchgroup=goFuncCallParens start='(' end=')' contained contains=@goType
 
-call s:HiConfig('goBuiltins', ['builtins'], #{offgroup: 'goFuncCall'})
+hi link goBuiltins    Special
+hi link goMakeBuiltin goBuiltins
+hi link goNewBuiltin  goBuiltins
 
-hi def link goBuiltins    Special
-hi def link goMakeBuiltin goBuiltins
-hi def link goNewBuiltin  goBuiltins
+call s:HiConfig('goBuiltins', ['go_highlight_builtins'], #{offgroup: 'goFuncCall'})
 
 " }}} Builtins
 
@@ -513,18 +513,18 @@ syntax keyword goSwitchKeywords default[:]
 syntax match  goSwitchTypeCase  /^\s\+case\s/ contained containedin=goSwitchTypeBlock skipwhite nextgroup=@goType
 syntax region goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}' contained contains=TOP,@Spell
 
-hi def link goIf   Conditional
-hi def link goElse goIf
+hi link goIf   Conditional
+hi link goElse goIf
 
-hi def link goFor         Repeat
-hi def link goForKeywords goFor
+hi link goFor         Repeat
+hi link goForKeywords goFor
 
-hi def link goSwitch         Conditional
-hi def link goSelect         goSwitch
-hi def link goSwitchKeywords goSwitch
+hi link goSwitch         Conditional
+hi link goSelect         goSwitch
+hi link goSwitchKeywords goSwitch
 
-hi def link goSwitchTypeBraces goBraces
-hi def link goSwitchTypeCase   goSwitchKeywords
+hi link goSwitchTypeBraces goBraces
+hi link goSwitchTypeCase   goSwitchKeywords
 
 " }}} Flow Control
 
@@ -535,9 +535,9 @@ hi def link goSwitchTypeCase   goSwitchKeywords
 " expression group?)
 syntax match goLabel /^\w\+\ze:/ contained containedin=goFuncBlock,goSwitchTypeBlock
 
-call s:HiConfig('goLabel', ['labels'])
+hi link goLabel Label
 
-hi def link goLabel Label
+call s:HiConfig('goLabel', ['go_highlight_labels'])
 
 " }}} Labels
 
@@ -551,7 +551,7 @@ syntax keyword goKeywords defer go
 syntax region goTypeAssertion matchgroup=goParens start=/(/ end=/)/ contained contains=@goType,goTypeDecl
 syntax match  goTypeAssertion /(type)/ contained contains=goParenBlock,goTypeDecl skipwhite nextgroup=goSwitchTypeBlock
 
-hi def link goKeywords Keyword
+hi link goKeywords Keyword
 
 " }}} Misc
 

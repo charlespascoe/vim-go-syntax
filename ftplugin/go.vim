@@ -64,7 +64,7 @@ fun! s:RefreshPackageHighlighting()
     end
 endfun
 
-if get(g:, 'go_highlight_packages', 1)
+if get(g:, 'go_highlight_imports', 1)
     au CursorHold,CursorHoldI <buffer> call <SID>RefreshPackageHighlighting()
     au BufEnter <buffer> ++once call <SID>RefreshPackageHighlighting()
 endif
