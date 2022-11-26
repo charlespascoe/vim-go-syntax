@@ -220,8 +220,8 @@ if s:assignOrShortDecl
     " This lookbehind is checked for every character, which is why
     " goStatementStart is conditional and only added if needed. Splitting this
     " into two seems to make it slightly faster overall.
-    syntax match goStatementStart /[{;]\@1<=/ contained containedin=goFuncBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
-    syntax match goStatementStart /^\ze\s/    contained containedin=goFuncBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    syntax match goStatementStart /[{;]\@1<=/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    syntax match goStatementStart /^\ze\s/    contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
 endif
 
 syntax keyword goConstDecl const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
@@ -352,7 +352,9 @@ hi def link goFuncType              goFuncDecl
 " Functions {{{
 
 " Unfortunately limited to at most 3 nested type args
-syntax match  goFuncCall /\v<\w+\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ contained containedin=goFuncBlock,goStructBlock,goVarDeclGroup,goConstDeclGroup,goFuncCallArgs,goMakeBlock nextgroup=goFuncCallTypeArgs,goFuncCallArgs
+" TODO: Figure out a better alternative to the long containedin (some kind of
+" expression group?)
+syntax match  goFuncCall /\v<\w+\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ contained containedin=goFuncBlock,goSwitchTypeBlock,goStructBlock,goVarDeclGroup,goConstDeclGroup,goFuncCallArgs,goMakeBlock nextgroup=goFuncCallTypeArgs,goFuncCallArgs
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goFuncCallArgs
 syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=TOP,@Spell
 
@@ -529,7 +531,9 @@ hi def link goSwitchTypeCase   goSwitchKeywords
 
 " Labels {{{
 
-syntax match goLabel /^\w\+\ze:/ contained containedin=goFuncBlock
+" TODO: Figure out a better alternative to the long containedin (some kind of
+" expression group?)
+syntax match goLabel /^\w\+\ze:/ contained containedin=goFuncBlock,goSwitchTypeBlock
 
 call s:HiConfig('goLabel', ['labels'])
 
