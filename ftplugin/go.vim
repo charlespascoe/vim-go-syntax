@@ -54,13 +54,13 @@ fun! s:RefreshPackageHighlighting()
 
     let l:packages = s:FindAllPackageNames()
 
-    if hlexists('goPackageCustomNames')
-        syn clear goPackageCustomNames
+    if hlexists('goImportedPackages')
+        syn clear goImportedPackages
     end
 
     if len(l:packages) > 0
-        exec 'syn keyword goPackageCustomNames '..join(l:packages, ' ')
-        hi link goPackageCustomNames goPackageName
+        exec 'syn keyword goImportedPackages '..join(l:packages, ' ')
+        hi link goImportedPackages goPackageName
     end
 endfun
 

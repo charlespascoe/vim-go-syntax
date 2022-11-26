@@ -12,7 +12,7 @@ syntax clear
 syntax case match
 
 " iskeyword includes colon to allow goStructValueField to take precedence over
-" goPackageCustomNames; if not for this, syntax keywords would frequently take
+" goImportedPackages; if not for this, syntax keywords would frequently take
 " precedence over pattern matches. The only negative effect of this is not being
 " able to use \K and \k, which isn't a problem for Go.
 syntax iskeyword @,48-57,_,192-255,:
