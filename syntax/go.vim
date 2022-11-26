@@ -134,6 +134,8 @@ call s:HiConfig('goGenerateComment', ['go_highlight_generate_tags'], #{offgroup:
 
 " Literals {{{
 
+" Strings
+
 syntax region goString       start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=@goStringSpell,goStringEscape,goDoubleQuoteEscape,goStringFormat
 syntax match  goStringEscape /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
 syntax match  goStringFormat /\v\%%(\%|[-+# 0]*%([1-9]\d*|\*)?%(\.%(\d+|\*)?)?[EFGOTUXbcdefgopqstvxf])/ contained
@@ -148,14 +150,34 @@ syntax match  goRuneLiteralEscape  /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\'
 
 syntax region goRawString start='`' end='`' keepend
 
-" TODO: Proper number matching
-" TODO: Fix numbers matching in int64 etc.
-syntax match goNumber /\<\c\d\+\%(\.\d\+\)\?\%(e[-+]\d+\)\?\>/
+" Numbers
+
+syntax match goNumber /\v[0-9][0-9_]*%(\.[0-9_]*)?%([eE][-+]?[0-9][0-9_]*)?i?/ contains=goNumberDecimalExp
+syntax match goNumber /\v\.[0-9][0-9_]*%([eE][-+]?[0-9][0-9_]*)?i?/            contains=goNumberDecimalExp
+
+syntax match goNumber /\c0b[01_]+/  contained
+syntax match goNumber /\c0o[0-7_]+/ contained
+syntax match goNumber /\v\c0x[0-9a-f_]*%(\.[0-9a-f_]*)?%([pP][-+]?[0-9a-f][0-9a-f_]*)?i?/ contained contains=goNumberHexExp
+
+" 'goNumberZeroLeader' searches for '0' so that the above three don't have to,
+" improving match performance
+syntax match goNumberZeroLeader  /\ze0/     nextgroup=goNumber
+
+syntax match goNumberSpecialChar /[_i]/     contained containedin=goNumber
+syntax match goNumberType        /\c0[box]/ contained containedin=goNumber
+syntax match goNumberError       /_\{2,\}/  contained containedin=goNumber
+
+syntax match goNumberDecimalExp  /\ce/      contained
+syntax match goNumberHexExp      /\cp/      contained
+
+" Other
 
 syntax keyword goBooleanTrue  true
 syntax keyword goBooleanFalse false
 
 syntax keyword goNil nil
+
+" Highlighting
 
 hi link goString             String
 hi link goStringEscape       SpecialChar
@@ -168,6 +190,11 @@ hi link goRuneLiteralEscape  goStringFormat
 hi link goRawString          String
 
 hi link goNumber             Number
+hi link goNumberType         SpecialChar
+hi link goNumberError        Error
+hi link goNumberDecimalExp   SpecialChar
+hi link goNumberHexExp       goNumberDecimalExp
+hi link goNumberSpecialChar  SpecialChar
 
 hi link goBooleanTrue        Boolean
 hi link goBooleanFalse       Boolean
@@ -176,6 +203,7 @@ hi link goNil                Constant
 
 call s:HiConfig('goStringFormat',       ['go_highlight_format_strings'], #{offgroup: 'goString'})
 call s:HiConfig('goInvalidRuneLiteral', ['go_highlight_rune_literal_error'])
+" TODO: Config for highlighting special chars in numbers
 
 " }}} Literals
 
