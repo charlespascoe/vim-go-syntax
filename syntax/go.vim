@@ -13,8 +13,10 @@ syntax case match
 
 " iskeyword includes colon to allow goStructValueField to take precedence over
 " goImportedPackages; if not for this, syntax keywords would frequently take
-" precedence over pattern matches. The only negative effect of this is not being
-" able to use \K and \k, which isn't a problem for Go.
+" precedence over pattern matches. The two negative effects of this are:
+"   1) not being able to use \K and \k, which isn't a problem for Go
+"   2) 'default:' keyword must include the colon (see goSwitchKeywords)
+" TODO: Try find a way to remove this (see goStructValueField)
 syntax iskeyword @,48-57,_,192-255,:
 
 " TODO: Syntax Folding
@@ -498,8 +500,13 @@ syntax keyword goForKeywords range break continue
 
 syntax keyword goSwitch         switch skipwhite nextgroup=goShortVarDecl
 syntax keyword goSelect         select
-syntax keyword goSwitchKeywords case fallthrough default
-syntax keyword goSwitchKeywords fallthrough default
+syntax keyword goSwitchKeywords case fallthrough
+" This is an unfortunate side-effect of setting 'syntax iskeyword' to include
+" colon to make 'goStructValueField' matching fast and correct.
+" TODO: Figure out how to correctly highlight goStructValueField that doesn't
+" involve changing 'syntax iskeyword'
+syntax keyword goSwitchKeywords default[:]
+
 
 syntax match  goSwitchTypeCase  /^\s\+case\s/ contained containedin=goSwitchTypeBlock skipwhite nextgroup=@goType
 syntax region goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}' contained contains=TOP,@Spell
