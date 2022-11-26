@@ -136,9 +136,7 @@ call s:HiConfig('goGenerateComment', ['go_highlight_generate_tags'], #{offgroup:
 
 syntax region goString       start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=@goStringSpell,goStringEscape,goDoubleQuoteEscape,goStringFormat
 syntax match  goStringEscape /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
-
-" TODO: float formatting, flags (https://pkg.go.dev/fmt)
-syntax match  goStringFormat /\v\%%([%EFGOTUXbcdefgopqstvxf])/ contained
+syntax match  goStringFormat /\v\%%(\%|[-+# 0]*%([1-9]\d*|\*)?%(\.%(\d+|\*)?)?[EFGOTUXbcdefgopqstvxf])/ contained
 
 " 'goInvalidRuneLiteral' is a loose match for all single-quote sequences; they
 " are highlighted as errors. If they contain a valid 'goRuneLiteral' or the
