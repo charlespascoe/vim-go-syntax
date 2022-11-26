@@ -150,16 +150,16 @@ syntax region goRawString start='`' end='`' keepend
 
 " Numbers
 
-syntax match goNumber /\v[0-9][0-9_]*%(\.[0-9_]*)?%([eE][-+]?[0-9][0-9_]*)?i?/ contains=goNumberDecimalExp
+syntax match goNumber /\v<[0-9][0-9_]*%(\.[0-9_]*)?%([eE][-+]?[0-9][0-9_]*)?i?/ contains=goNumberDecimalExp
 syntax match goNumber /\v\.[0-9][0-9_]*%([eE][-+]?[0-9][0-9_]*)?i?/            contains=goNumberDecimalExp
 
-syntax match goNumber /\c0b[01_]+/  contained
-syntax match goNumber /\c0o[0-7_]+/ contained
+syntax match goNumber /\c0b[01_]\+/  contained
+syntax match goNumber /\c0o[0-7_]\+/ contained
 syntax match goNumber /\v\c0x[0-9a-f_]*%(\.[0-9a-f_]*)?%([pP][-+]?[0-9a-f][0-9a-f_]*)?i?/ contained contains=goNumberHexExp
 
 " 'goNumberZeroLeader' searches for '0' so that the above three don't have to,
 " improving match performance
-syntax match goNumberZeroLeader  /\ze0/     nextgroup=goNumber
+syntax match goNumberZeroLeader  /\ze\<0/     nextgroup=goNumber
 
 syntax match goNumberSpecialChar /[_i]/     contained containedin=goNumber
 syntax match goNumberType        /\c0[box]/ contained containedin=goNumber
