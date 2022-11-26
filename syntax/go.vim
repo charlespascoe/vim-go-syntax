@@ -90,6 +90,7 @@ endif
 " behaviour while allowing us to highlight fields spread across multiple lines.
 syntax match goDot     /\./       contained
 syntax match goDotExpr /\.\%#\@!/ skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField,goStructValue
+syntax match goField   /\w\+/     contained
 
 " TODO: Only valid operators?
 syntax match   goOperator     /[-+*/!:=%&^<>|~]\+/
@@ -97,11 +98,7 @@ syntax match   goComma        /,/
 syntax match   goSemicolon    /;/
 syntax keyword goUnderscore   _
 
-" This is defined early in the syntax file so other things can override it
-if s:HiConfig('goField', ['fields'], #{default: 0})
-    syntax match goField /\<\w\+/ contained
-endif
-
+call s:HiConfig('goField',     ['fields'], #{default: 0})
 call s:HiConfig('goOperator',  ['operators'])
 call s:HiConfig('goDot',       ['dot','separators'])
 call s:HiConfig('goComma',     ['comma','separators'])
