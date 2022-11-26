@@ -79,18 +79,17 @@ endif
 
 " Misc {{{
 
-" goDotExpr matches a dot that is found as a part of an expression, whereas
-" goDot is used to highlight a dot in non-expression contexts (e.g. the dot
-" between a package and a type). By separating these two, it significantly
-" improves the performance of searching for fields and type assertions.
-"
-" Note that goDotExpr checks to see if the cursor is at the end so that while
-" the user is typing, it doesn't highlight the statement on the next line as
-" though it were a field. This has a small performance cost, but it prevents odd
-" behaviour while allowing us to highlight fields spread across multiple lines.
-syntax match goDot     /\./       contained
-syntax match goDotExpr /\.\%#\@!/ skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField,goStructValue
-syntax match goField   /\<\w\+/   contained
+" 'goDotExpr' matches a dot that is found as a part of an expression, whereas
+" 'goDot' is used to highlight a dot in non-expression contexts (e.g. the dot
+" between a package and a type). 'goDotExpr' significantly improves the
+" performance of searching for fields and type assertions.
+syntax match goDot     /\./     contained
+syntax match goDotExpr /\./     skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField,goStructValue,goEmptyLine
+syntax match goField   /\<\w\+/ contained
+
+" 'goEmptyLine' is used to prevent odd highlighting behaviour when the current
+" line ends in a dot while the user is typing (see 'nextgroup' of 'goDotExpr')
+syntax match goEmptyLine /^$/ contained
 
 " TODO: Only valid operators?
 syntax match   goOperator     /[-+*/!:=%&^<>|~]\+/
