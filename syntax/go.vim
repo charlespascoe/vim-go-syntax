@@ -486,7 +486,7 @@ hi link goInterfaceMethod       goFuncName
 hi link goInterfaceMethodParens goFuncParens
 
 call s:HiConfig('goStructTypeTag',    ['go_highlight_struct_tags'])
-call s:HiConfig('goStructValueField', ['go_highlight_struct_fields'], #{default: 1})
+call s:HiConfig('goStructValueField', ['go_highlight_struct_fields'], #{default: 0})
 
 " }}} Structs and Interfaces
 
