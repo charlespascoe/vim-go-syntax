@@ -17,14 +17,10 @@ syntax case match
 "   1) not being able to use \K and \k, which isn't a problem for Go
 "   2) 'default:' keyword must include the colon (see goSwitchKeywords)
 " TODO: Try find a way to remove this (see goStructValueField)
-syntax iskeyword @,48-57,_,192-255,:
+syntax iskeyword @,48-57,_,192-255
 
 " TODO: Syntax Folding
 
-" TODO: Add support for defining multiple types at once
-" (https://go.dev/ref/spec#Underlying_types)
-
-" TODO: Maybe have highlighting for built-in functions etc?
 " TODO: Check performance of lookbehinds
 " TODO: Check correct use of 'skipempty'
 
@@ -81,6 +77,8 @@ endif
 
 " Misc {{{
 
+syntax match goWordStart /\<\ze\K/ nextgroup=goStructValue,goFuncCall,goImportedPackages
+
 " 'goDotExpr' matches a dot that is found as a part of an expression, whereas
 " 'goDot' is used to highlight a dot in non-expression contexts (e.g. the dot
 " between a package and a type). 'goDotExpr' significantly improves the
@@ -119,9 +117,9 @@ call s:HiConfig('goSemicolon', ['go_highlight_semicolon','go_highlight_separator
 " Comments {{{
 
 syntax keyword goCommentTodo     contained TODO FIXME XXX TBD NOTE
-syntax region  goComment         start=+//+  end=+$+   contains=@goCommentSpell,goCommentTodo keepend
-syntax region  goComment         start=+/\*+ end=+\*/+ contains=@goCommentSpell,goCommentTodo keepend
-syntax match   goGenerateComment +//go:generate.*$+
+syntax region  goComment         start=+//+            end=+$+   contains=@goCommentSpell,goCommentTodo keepend
+syntax region  goComment         start=+/\*+           end=+\*/+ contains=@goCommentSpell,goCommentTodo keepend
+syntax region  goGenerateComment start=+//go:generate+ end=+$+   containedin=goComment
 
 hi link goCommentTodo     Todo
 hi link goComment         Comment
@@ -268,9 +266,13 @@ let s:assignOrShortDecl = (
 if s:assignOrShortDecl
     " This lookbehind is checked for every character, which is why
     " goStatementStart is conditional and only added if needed. Splitting this
-    " into two seems to make it slightly faster overall.
-    syntax match goStatementStart /[{;]\@1<=/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
-    syntax match goStatementStart /^\ze\s/    contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    " into three makes it slightly faster overall.
+    " Note: the pattern /[{;]\@1<=/ seems to be equivalent to /[{;]\@1<=./
+    " which is why it had such poor performance; splitting it into two worked
+    " better
+    syntax match goStatementStart /[{;]\@1<=\s/   contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    syntax match goStatementStart /[{;]\@1<=\<\K/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    syntax match goStatementStart /^\ze\s/        contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
 endif
 
 " }}} Constants and Variables
@@ -375,7 +377,7 @@ call s:HiConfig('goMapBrackets',  ['go_highlight_map_brackets'])
 " Unfortunately limited to at most 3 nested type args
 " TODO: Figure out a better alternative to the long containedin (some kind of
 " expression group?)
-syntax match  goFuncCall /\v<\w+\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ contained containedin=goFuncBlock,goSwitchTypeBlock,goStructBlock,goVarDeclGroup,goConstDeclGroup,goFuncCallArgs,goMakeBlock nextgroup=goFuncCallTypeArgs,goFuncCallArgs
+syntax match  goFuncCall /\v\w+\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ contained nextgroup=goFuncCallTypeArgs,goFuncCallArgs
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goFuncCallArgs
 syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=TOP,@Spell
 
@@ -385,15 +387,16 @@ syntax match goVariadic  /\.\.\./ contained skipwhite nextgroup=@goType
 syntax match goArgSpread /\.\.\./ contained containedin=goFuncCallArgs
 
 " TODO: Should this be "goParams" rather than "goParam"?
-syntax match goParam /^\s*\zs\w\+/               contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
-syntax match goParam /\%([(,]\s*\)\@20<=\zs\w\+/ contained skipempty skipwhite nextgroup=goParam,goVariadic,@goType
+syntax match goParam      /\w\+/ contained skipempty skipwhite nextgroup=goParamComma,goVariadic,@goType
+syntax match goParamComma /,/    contained skipempty skipwhite nextgroup=goParam
 
 syntax match goFuncName /\w\+/ contained skipwhite nextgroup=goFuncTypeParams,goFuncParams
 
 syntax region goFuncTypeParams matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=goTypeParam,goComma nextgroup=goFuncParams
 
 " TODO: is skipempty needed?
-syntax match goTypeParam /\%(\%(^\|[\[,]\)\s*\)\@20<=\zs\w\+/ contained skipempty skipwhite nextgroup=goTypeParam,goTypeConstraint
+syntax match goTypeParam      /\w\+/ contained skipempty skipwhite nextgroup=goTypeParamComma,goTypeConstraint
+syntax match goTypeParamComma /,/    contained skipempty skipwhite nextgroup=goTypeParam
 
 " This is a region to allow use of types that have commas (e.g. function
 " definitions) or nested type parameters, because they will automatically extend
@@ -429,7 +432,9 @@ hi link goVariadic              goOperator
 hi link goArgSpread             goVariadic
 
 hi link goParam                 Identifier
+hi link goParamComma            goComma
 hi link goTypeParam             Identifier
+hi link goTypeParamComma        goComma
 
 
 " TODO: What to do with these?
@@ -459,7 +464,7 @@ syntax match   goEmbeddedType /\*\?\w\+\%(\.\w\+\)\?\%#\@1<!$/ contained contain
 
 " It is technically possible to have a space between a struct name and the
 " braces, but it's hard to reliably highlight
-syntax match  goStructValue /\v<\w+%(\.\w+)?\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
+syntax match  goStructValue /\v\w+\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contained contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
 syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP,@Spell
 syntax match  goStructValueField /\<\w\+\ze:/ contained containedin=goStructBlock
@@ -524,13 +529,7 @@ syntax keyword goForKeywords range break continue
 
 syntax keyword goSwitch         switch skipwhite nextgroup=goShortVarDecl
 syntax keyword goSelect         select
-syntax keyword goSwitchKeywords case fallthrough
-" This is an unfortunate side-effect of setting 'syntax iskeyword' to include
-" colon to make 'goStructValueField' matching fast and correct.
-" TODO: Figure out how to correctly highlight goStructValueField that doesn't
-" involve changing 'syntax iskeyword'
-syntax keyword goSwitchKeywords default[:]
-
+syntax keyword goSwitchKeywords case fallthrough default
 
 syntax match  goSwitchTypeCase  /^\s\+case\s/ contained containedin=goSwitchTypeBlock skipwhite nextgroup=@goType
 syntax region goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}' contained contains=TOP,@Spell

@@ -59,7 +59,7 @@ fun! s:RefreshPackageHighlighting()
     end
 
     if len(l:packages) > 0
-        exec 'syn keyword goImportedPackages '..join(l:packages, ' ')
+        exec 'syn keyword goImportedPackages '..join(l:packages, ' ')..' contained'
         hi link goImportedPackages goPackageName
     end
 endfun
