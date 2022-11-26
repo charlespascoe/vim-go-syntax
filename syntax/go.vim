@@ -11,6 +11,12 @@ let b:__vim_go_syntax = 1
 syntax clear
 syntax case match
 
+" iskeyword includes colon to allow goStructValueField to take precedence over
+" goPackageCustomNames; if not for this, syntax keywords would frequently take
+" precedence over pattern matches. The only negative effect of this is not being
+" able to use \K and \k, which isn't a problem for Go.
+syntax iskeyword @,48-57,_,192-255,:
+
 " TODO: Syntax Folding
 
 " TODO: Add support for defining multiple types at once
@@ -434,6 +440,7 @@ syntax match   goEmbeddedType /\*\?\w\+\%(\.\w\+\)\?\%#\@1<!$/ contained contain
 syntax match  goStructValue /\v<\w+%(\.\w+)?\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
 syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP,@Spell
+syntax match  goStructValueField /\w\+\ze:/ contained containedin=goStructBlock
 
 syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfaceBlock
 " TODO: Maybe don't just put goOperator in here and instead use the correct
@@ -443,13 +450,15 @@ syntax match  goInterfaceMethod /\<\w\+\ze\s*(/ contained skipwhite nextgroup=go
 syntax region goInterfaceMethodParams matchgroup=goInterfaceMethodParens start='(' end=')' contained contains=goFuncTypeParam,goComma skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
 syntax region goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
 
-call s:HiConfig('goStructTypeTag', ['struct_tags'])
+call s:HiConfig('goStructTypeTag',    ['struct_tags'])
+call s:HiConfig('goStructValueField', ['struct_fields'], #{default: 1})
 
 hi def link goStructType       Keyword
 hi def link goStructTypeBraces goBraces
 hi def link goStructTypeField  NONE
 hi def link goStructTypeTag    PreProc
 hi def link goStructValue      goNonPrimitiveType
+hi def link goStructValueField Identifier
 hi def link goStructBraces     goBraces
 
 hi def link goInterfaceType         goStructType
