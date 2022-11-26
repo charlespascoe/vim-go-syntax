@@ -201,26 +201,10 @@ call s:HiConfig('goParens',   ['go_highlight_parens'])
 
 " goVarAssign and goShortVarDecl
 
-let s:assignOrShortDecl = 0
 
-if s:HiConfig('goVarAssign', ['go_highlight_variable_assignments'], #{default: 0})
-    " TODO: Only valid operators?
-    syntax match goVarAssign /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
-    let s:assignOrShortDecl = 1
-endif
-
-if s:HiConfig('goShortVarDecl', ['go_highlight_short_variable_declarations','go_highlight_variable_declarations'])
-    syntax match goShortVarDecl /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*:=/ contains=goComma,goUnderscore contained
-    let s:assignOrShortDecl = 1
-endif
-
-if s:assignOrShortDecl
-    " This lookbehind is checked for every character, which is why
-    " goStatementStart is conditional and only added if needed. Splitting this
-    " into two seems to make it slightly faster overall.
-    syntax match goStatementStart /[{;]\@1<=/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
-    syntax match goStatementStart /^\ze\s/    contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
-endif
+" TODO: Only valid operators?
+syntax match goVarAssign    /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
+syntax match goShortVarDecl /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*:=/               contains=goComma,goUnderscore contained
 
 syntax keyword goConstDecl const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
 syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
@@ -242,13 +226,24 @@ hi link goVarDeclParens      goParens
 hi link goVarIdentifier      Identifier
 hi link goVarGroupIdentifier goVarIdentifier
 hi link goShortVarDecl       Identifier
-hi link goShortVarDecl goShortVarDecl
 
 hi link goVarAssign          Special
 
 hi link goIota               Special
 
 call s:HiConfig('goVarIdentifier', ['go_highlight_variable_declarations'])
+let s:assignOrShortDecl = (
+    \ s:HiConfig('goVarAssign',     ['go_highlight_variable_assignments'], #{default: 0}) ||
+    \ s:HiConfig('goShortVarDecl',  ['go_highlight_short_variable_declarations','go_highlight_variable_declarations'])
+    \)
+
+if s:assignOrShortDecl
+    " This lookbehind is checked for every character, which is why
+    " goStatementStart is conditional and only added if needed. Splitting this
+    " into two seems to make it slightly faster overall.
+    syntax match goStatementStart /[{;]\@1<=/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    syntax match goStatementStart /^\ze\s/    contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+endif
 
 " }}} Constants and Variables
 
