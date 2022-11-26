@@ -90,7 +90,7 @@ endif
 " behaviour while allowing us to highlight fields spread across multiple lines.
 syntax match goDot     /\./       contained
 syntax match goDotExpr /\.\%#\@!/ skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField,goStructValue
-syntax match goField   /\w\+/     contained
+syntax match goField   /\<\w\+/   contained
 
 " TODO: Only valid operators?
 syntax match   goOperator     /[-+*/!:=%&^<>|~]\+/
@@ -437,7 +437,7 @@ syntax match   goEmbeddedType /\*\?\w\+\%(\.\w\+\)\?\%#\@1<!$/ contained contain
 syntax match  goStructValue /\v<\w+%(\.\w+)?\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
 syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP,@Spell
-syntax match  goStructValueField /\w\+\ze:/ contained containedin=goStructBlock
+syntax match  goStructValueField /\<\w\+\ze:/ contained containedin=goStructBlock
 
 syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfaceBlock
 " TODO: Maybe don't just put goOperator in here and instead use the correct
@@ -523,7 +523,7 @@ hi def link goSwitchTypeCase   goSwitchKeywords
 
 " Labels {{{
 
-syntax match goLabel /^\w\+\ze:/
+syntax match goLabel /^\w\+\ze:/ contained containedin=goFuncBlock
 
 call s:HiConfig('goLabel', ['labels'])
 
