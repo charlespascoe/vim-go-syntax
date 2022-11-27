@@ -11,12 +11,6 @@ endif
 syntax clear
 syntax case match
 
-" iskeyword includes colon to allow goStructValueField to take precedence over
-" goImportedPackages; if not for this, syntax keywords would frequently take
-" precedence over pattern matches. The two negative effects of this are:
-"   1) not being able to use \K and \k, which isn't a problem for Go
-"   2) 'default:' keyword must include the colon (see goSwitchKeywords)
-" TODO: Try find a way to remove this (see goStructValueField)
 syntax iskeyword @,48-57,_,192-255
 
 " TODO: Syntax Folding
@@ -77,15 +71,20 @@ endif
 
 " Misc {{{
 
-syntax match goWordStart /\<\ze\K/ nextgroup=goStructValue,goFuncCall,goImportedPackages
+" 'goWordStart' reduces the number of times each of the 'nextgroups' is checked,
+" but also prevents 'goImportedPackages' (a keyword syntax element) from
+" overriding matches (e.g. in 'goStructValueField').
+syntax match goWordStart /\<\ze\K/ nextgroup=goStructValue,goFuncCall,goImportedPackages,goLabel
 
 " 'goDotExpr' matches a dot that is found as a part of an expression, whereas
 " 'goDot' is used to highlight a dot in non-expression contexts (e.g. the dot
 " between a package and a type). 'goDotExpr' significantly improves the
 " performance of searching for fields and type assertions.
-syntax match goDot     /\./     contained
-syntax match goDotExpr /\./     skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField,goStructValue,goEmptyLine
-syntax match goField   /\<\w\+/ contained
+syntax match goDot     /\./ contained
+syntax match goDotExpr /\./ skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField,goStructValue,goEmptyLine
+
+syntax match goField /\K\k*/     contained
+syntax match goLabel /\K\k*\ze:/ contained
 
 " 'goEmptyLine' is used to prevent odd highlighting behaviour when the current
 " line ends in a dot while the user is typing (see 'nextgroup' of 'goDotExpr')
@@ -97,28 +96,31 @@ syntax match   goComma        /,/
 syntax match   goSemicolon    /;/
 syntax keyword goUnderscore   _
 
+hi link goDotExpr    goDot
+hi link goField      Identifier
+hi link goLabel      Label
 hi link goOperator   Operator
 hi link goDot        goOperator
-hi link goDotExpr    goDot
 hi link goComma      goOperator
 hi link goSemicolon  goOperator
 hi link goUnderscore Special
-hi link goField      Identifier
 
 call s:HiConfig('goField',     ['go_highlight_fields'], #{default: 0})
+call s:HiConfig('goLabel',     ['go_highlight_labels'])
 call s:HiConfig('goOperator',  ['go_highlight_operators'])
-call s:HiConfig('goDot',       ['go_highlight_dot','go_highlight_separators'])
-call s:HiConfig('goComma',     ['go_highlight_comma','go_highlight_separators'])
-call s:HiConfig('goSemicolon', ['go_highlight_semicolon','go_highlight_separators'])
+call s:HiConfig('goDot',       ['go_highlight_dot',       'go_highlight_separators'])
+call s:HiConfig('goComma',     ['go_highlight_comma',     'go_highlight_separators'])
+call s:HiConfig('goSemicolon', ['go_highlight_semicolon', 'go_highlight_separators'])
 
 " }}} Misc
 
 
 " Comments {{{
 
+syntax region  goComment start=+//+  end=+$+   contains=@goCommentSpell,goCommentTodo keepend
+syntax region  goComment start=+/\*+ end=+\*/+ contains=@goCommentSpell,goCommentTodo keepend
+
 syntax keyword goCommentTodo     contained TODO FIXME XXX TBD NOTE
-syntax region  goComment         start=+//+            end=+$+   contains=@goCommentSpell,goCommentTodo keepend
-syntax region  goComment         start=+/\*+           end=+\*/+ contains=@goCommentSpell,goCommentTodo keepend
 syntax region  goGenerateComment start=+//go:generate+ end=+$+   containedin=goComment
 
 hi link goCommentTodo     Todo
@@ -165,6 +167,7 @@ syntax match goNumberSpecialChar /[_i]/     contained containedin=goNumber
 syntax match goNumberType        /\c0[box]/ contained containedin=goNumber
 syntax match goNumberError       /_\{2,\}/  contained containedin=goNumber
 
+" Exponent markers
 syntax match goNumberDecimalExp  /\ce/      contained
 syntax match goNumberHexExp      /\cp/      contained
 
@@ -173,7 +176,7 @@ syntax match goNumberHexExp      /\cp/      contained
 syntax keyword goBooleanTrue  true
 syntax keyword goBooleanFalse false
 
-syntax keyword goNil nil
+syntax keyword goNil          nil
 
 " Highlighting
 
@@ -225,9 +228,6 @@ call s:HiConfig('goParens',   ['go_highlight_parens'])
 
 " Constants and Variables {{{
 
-" goVarAssign and goShortVarDecl
-
-
 " TODO: Only valid operators?
 syntax match goVarAssign    /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
 syntax match goShortVarDecl /\<\w\+\%(\s*,\s*\%(\w\+\)\?\)*\ze\s*:=/               contains=goComma,goUnderscore contained
@@ -238,8 +238,14 @@ syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,g
 syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP,@Spell
 syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP,@Spell
 
-syntax match goVarIdentifier      /\<\w\+/ contained skipwhite nextgroup=@goType
-syntax match goVarGroupIdentifier /\%(^\|;\|\%(const\|var\)\s\+(\)\@20<=\s*\zs\w\+/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=@goType
+syntax match goVarIdentifier      /\<\w\+/         contained skipwhite nextgroup=@goType
+
+" goVarGroupIdentifier finds positions inside a var/const declaration group
+" (e.g. 'const (...)') that may be followed by an identifier. Prevents
+" goVarIdentifier from matching in the wrong places.
+syntax match goVarGroupIdentifier /^\ze\s/         contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=goVarIdentifier
+syntax match goVarGroupIdentifier /[(;]\@1<=\ze\s/ contained containedin=goConstDeclGroup,goVarDeclGroup skipwhite nextgroup=goVarIdentifier
+syntax match goVarGroupIdentifier /[(;]\@1<=\ze\K/ contained containedin=goConstDeclGroup,goVarDeclGroup nextgroup=goVarIdentifier
 
 syntax keyword goIota iota contained containedin=goConstDeclGroup
 
@@ -264,12 +270,12 @@ let s:assignOrShortDecl = (
     \)
 
 if s:assignOrShortDecl
-    " This lookbehind is checked for every character, which is why
-    " goStatementStart is conditional and only added if needed. Splitting this
-    " into three makes it slightly faster overall.
+    " This lookbehind is checked for a lot of characters in the file, which is
+    " why goStatementStart is conditional and only added if needed. Splitting
+    " this into three makes it slightly faster overall.
     " Note: the pattern /[{;]\@1<=/ seems to be equivalent to /[{;]\@1<=./
-    " which is why it had such poor performance; splitting it into two worked
-    " better
+    " which is why it had such poor performance and conflict with other
+    " patterns; splitting it into two specific patterns works better
     syntax match goStatementStart /[{;]\@1<=\s/   contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
     syntax match goStatementStart /[{;]\@1<=\<\K/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
     syntax match goStatementStart /^\ze\s/        contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
@@ -297,28 +303,33 @@ hi link goImportParens goParens
 
 " Types {{{
 
+syntax cluster goType contains=goPrimitiveTypes,goFuncType,goStructType,goInterfaceType,goMap,goSliceOrArrayType,goChannel,goNonPrimitiveType,goPointer,goTypeParens
+
 syntax match  goPointer /*/ contained nextgroup=@goType
+
+" goTypeParens is used to ensure types within parens are highlighted correctly,
+" e.g. the func type in the slice literal `[](func (a, b int) bool){ ... }`
 syntax region goTypeParens start='(' end=')' contained contains=@goType
 
-syntax keyword goTypeDecl type skipempty skipwhite nextgroup=goTypeDeclName,goTypeDeclGroup
-syntax region  goTypeDeclGroup matchgroup=goTypeDeclGroupParens start='(' end=')' contained contains=goTypeDeclName,goComment
+syntax keyword goTypeDecl     type   skipempty skipwhite nextgroup=goTypeDeclName,goTypeDeclGroup
+syntax match   goTypeAssign   /=/    contained skipwhite nextgroup=@goType
 syntax match   goTypeDeclName /\w\+/ contained skipempty skipwhite nextgroup=goTypeDeclTypeParams,goTypeAssign,@goType
-syntax region  goTypeDeclTypeParams matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=goTypeParam,goComma nextgroup=@goType
-syntax match   goTypeAssign /=/ contained skipwhite nextgroup=@goType
 
-syntax cluster goType contains=goSimpleBuiltinTypes,goFuncType,goStructType,goInterfaceType,goMap,goSliceOrArrayType,goChannel,goNonPrimitiveType,goPointer,goTypeParens
+syntax region  goTypeDeclGroup      matchgroup=goTypeDeclGroupParens start='('  end=')'  contained contains=goTypeDeclName,goComment
+syntax region  goTypeDeclTypeParams matchgroup=goTypeParamBrackets   start='\[' end='\]' contained contains=goTypeParam,goComma nextgroup=@goType
 
-syntax match goNonPrimitiveType /\<\w\+\%(\.\w\+\)\?\[\?/ contained contains=goPackageName,goDot,goTypeArgs
-syntax match goPackageName /\<\w\+\ze\./ contained nextgroup=goDot
+" goNonPrimitiveType is used for matching the names and packages of
+" non-primitive types (i.e. types other than int, bool, string, etc.)
+syntax match goNonPrimitiveType /\<\w\+\%(\.\w\+\)\?\[\?/ contained contains=goPackageName,goTypeArgs
+syntax match goPackageName      /\<\w\+\ze\./             contained nextgroup=goDot
 
-" TODO: Try to reduce type arg declarations
 syntax region goTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma
 
-syntax keyword goSimpleBuiltinTypes any bool byte complex128 complex64 error float32 float64 int int8 int16 int32 int64 rune string uint uint8 uint16 uint32 uint64 uintptr
+syntax keyword goPrimitiveTypes any bool byte complex128 complex64 error float32 float64 int int8 int16 int32 int64 rune string uint uint8 uint16 uint32 uint64 uintptr
 
-" TODO: Can function types have type params?
 syntax match  goFuncType /func\s*(/ contained skipwhite contains=goFuncTypeParens skipwhite nextgroup=@goType,goFuncTypeMultiReturnType
-syntax region goFuncTypeParens matchgroup=goFuncParens start='(' end=')' contained contains=goFuncTypeParam,goComma
+
+syntax region goFuncTypeParens          matchgroup=goFuncParens            start='(' end=')' contained contains=goFuncTypeParam,goComma
 syntax region goFuncTypeMultiReturnType matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
 
 syntax keyword goMap map skipempty skipwhite nextgroup=goMapKeyType
@@ -341,28 +352,28 @@ syntax match goChannel /<-chan/ skipwhite contains=goOperator nextgroup=@goType
 syntax match goChannel /chan\%(<-\)\?/ skipwhite contains=goOperator nextgroup=@goType
 
 
-hi link goPointer               goOperator
+hi link goPointer             goOperator
 
 " goTypeDecl should technically link to Typedef, but it looks a bit odd.
-hi link goTypeDecl              Keyword
-hi link goTypeParens            goParens
-hi link goTypeDeclGroupParens   goParens
-hi link goTypeDeclName          Typedef
-hi link goTypeParamBrackets     goBrackets
-hi link goTypeAssign            goOperator
+hi link goTypeDecl            Keyword
+hi link goTypeParens          goParens
+hi link goTypeDeclGroupParens goParens
+hi link goTypeDeclName        Typedef
+hi link goTypeParamBrackets   goBrackets
+hi link goTypeAssign          goOperator
 
-hi link goPackageName           Special
+hi link goPackageName         Special
 
-hi link goNonPrimitiveType      Type
-hi link goSimpleBuiltinTypes    Type
-hi link goMap                   goSimpleBuiltinTypes
-hi link goMapBrackets           Delimiter
-hi link goSliceOrArray          Delimiter
-hi link goSliceOrArrayType      goSliceOrArray
-hi link goSliceBraces           goBraces
-hi link goChannel               Type
+hi link goNonPrimitiveType    Type
+hi link goPrimitiveTypes      Type
+hi link goMap                 goPrimitiveTypes
+hi link goMapBrackets         Delimiter
+hi link goSliceOrArray        Delimiter
+hi link goSliceOrArrayType    goSliceOrArray
+hi link goSliceBraces         goBraces
+hi link goChannel             Type
 
-hi link goFuncType              goFuncDecl
+hi link goFuncType            goFuncDecl
 " See 'Functions' for other function highlight groups
 
 call s:HiConfig('goTypeDeclName', ['go_highlight_types'])
@@ -464,7 +475,7 @@ syntax match   goEmbeddedType /\*\?\w\+\%(\.\w\+\)\?\%#\@1<!$/ contained contain
 
 " It is technically possible to have a space between a struct name and the
 " braces, but it's hard to reliably highlight
-syntax match  goStructValue /\v\w+\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contained contains=goPackageName,goDot nextgroup=goStructValueTypeArgs,goStructBlock
+syntax match  goStructValue /\v\w+\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contained nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
 syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP,@Spell
 syntax match  goStructValueField /\<\w\+\ze:/ contained containedin=goStructBlock
@@ -550,26 +561,12 @@ hi link goSwitchTypeCase   goSwitchKeywords
 " }}} Flow Control
 
 
-" Labels {{{
-
-" TODO: Figure out a better alternative to the long containedin (some kind of
-" expression group?)
-syntax match goLabel /^\w\+\ze:/ contained containedin=goFuncBlock,goSwitchTypeBlock
-
-hi link goLabel Label
-
-call s:HiConfig('goLabel', ['go_highlight_labels'])
-
-" }}} Labels
-
-
 " Misc {{{
 
-" TODO: Make this a catch-all for various keywords
 syntax keyword goKeywords defer go
 
 " goTypeAssertion is a part of the nextgroup list of goDotExpr
-syntax region goTypeAssertion matchgroup=goParens start=/(/ end=/)/ contained contains=@goType,goTypeDecl
+syntax region goTypeAssertion matchgroup=goParens start=/(/ end=/)/ contained contains=@goType
 syntax match  goTypeAssertion /(type)/ contained contains=goParenBlock,goTypeDecl skipwhite nextgroup=goSwitchTypeBlock
 
 hi link goKeywords Keyword
