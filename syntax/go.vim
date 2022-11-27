@@ -84,7 +84,22 @@ syntax match goWordStart /\<\ze\K/ nextgroup=goStructValue,goFuncCall,goImported
 " between a package and a type). 'goDotExpr' significantly improves the
 " performance of searching for fields and type assertions.
 syntax match goDot     /\./ contained
-syntax match goDotExpr /\./ skipwhite skipempty nextgroup=goFuncCall,goTypeAssertion,goField,goStructValue,goEmptyLine
+syntax match goDotExpr /\./ skipwhite skipempty nextgroup=@goDotExpr
+
+" The cluster of items that could follow a dot in an expression
+syntax cluster goDotExpr contains=goFuncCall,goTypeAssertion,goField,goStructValue,goDotComment,goEmptyLine
+
+" goDotComment is identical to goComment, except it doesn't break field
+" highlighting across multiple lines, e.g.:
+"
+"   foo.bar.
+"       baz.
+"       // This is goDotComment instead of a goComment
+"       blah
+"
+" Both 'baz' and 'blah' are correctly highlighted as fields
+syntax region  goDotComment start=+//+  end=+$+   contained contains=@goCommentSpell,goCommentTodo keepend skipwhite skipempty nextgroup=@goDotExpr
+syntax region  goDotComment start=+/\*+ end=+\*/+ contained contains=@goCommentSpell,goCommentTodo keepend skipwhite skipempty nextgroup=@goDotExpr
 
 syntax match goField /\K\k*/     contained
 syntax match goLabel /\K\k*\ze:/ contained
@@ -99,7 +114,6 @@ syntax match   goComma        /,/
 syntax match   goSemicolon    /;/
 syntax keyword goUnderscore   _
 
-hi link goDotExpr    goDot
 hi link goField      Identifier
 hi link goLabel      Label
 hi link goOperator   Operator
@@ -107,6 +121,8 @@ hi link goDot        goOperator
 hi link goComma      goOperator
 hi link goSemicolon  goOperator
 hi link goUnderscore Special
+hi link goDotExpr    goDot
+hi link goDotComment goComment
 
 call s:HiConfig('goField',     ['go_highlight_fields'], #{default: 0})
 call s:HiConfig('goLabel',     ['go_highlight_labels'])
