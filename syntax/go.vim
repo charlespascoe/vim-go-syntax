@@ -171,6 +171,9 @@ syntax region goRawString start='`' end='`' keepend
 
 " Numbers
 
+" TODO: Highlight all forms of invalid number formatting? E.g. underscores in
+" certain places
+" TODO: Highlight floats differently
 syntax match goNumber /\v<[0-9][0-9_]*%(\.[0-9_]*)?%([eE][-+]?[0-9][0-9_]*)?i?/ contains=goNumberDecimalExp
 syntax match goNumber /\v\.[0-9][0-9_]*%([eE][-+]?[0-9][0-9_]*)?i?/            contains=goNumberDecimalExp
 
@@ -221,8 +224,8 @@ hi link goBooleanFalse       Boolean
 
 hi link goNil                Constant
 
-call s:HiConfig('goStringFormat',       ['go_highlight_format_strings'], #{offgroup: 'goString'})
-call s:HiConfig('goInvalidRuneLiteral', ['go_highlight_rune_literal_error'])
+call s:HiConfig('goStringFormat',       ['go_highlight_format_strings'],     #{offgroup: 'goString'})
+call s:HiConfig('goInvalidRuneLiteral', ['go_highlight_rune_literal_error'], #{offgroup: 'goRuneLiteral'})
 " TODO: Config for highlighting special chars in numbers
 
 " }}} Literals
@@ -257,7 +260,7 @@ syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,g
 syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP,@Spell
 syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP,@Spell
 
-syntax match goVarIdentifier      /\<\K\k*/         contained skipwhite nextgroup=@goType
+syntax match goVarIdentifier /\<\K\k*/ contained skipwhite nextgroup=@goType
 
 " goVarGroupIdentifier finds positions inside a var/const declaration group
 " (e.g. 'const (...)') that may be followed by an identifier. Prevents
@@ -295,9 +298,9 @@ if s:assignOrShortDecl
     " Note: the pattern /[{;]\@1<=/ seems to be equivalent to /[{;]\@1<=./
     " which is why it had such poor performance and conflict with other
     " patterns; splitting it into two specific patterns works better
-    syntax match goStatementStart /[{;]\@1<=\s/   contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
-    syntax match goStatementStart /[{;]\@1<=\<\K/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
-    syntax match goStatementStart /^\ze\s/        contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    syntax match goStatementStart /[{;]\@1<=\ze\s/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    syntax match goStatementStart /[{;]\@1<=\ze\K/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    syntax match goStatementStart /^\ze\s/         contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
 endif
 
 " }}} Constants and Variables
@@ -338,7 +341,8 @@ syntax region  goTypeDeclGroup      matchgroup=goTypeDeclGroupParens start='('  
 syntax region  goTypeDeclTypeParams matchgroup=goTypeParamBrackets   start='\[' end='\]' contained contains=goTypeParam,goComma nextgroup=@goType
 
 " goNonPrimitiveType is used for matching the names and packages of
-" non-primitive types (i.e. types other than int, bool, string, etc.)
+" non-primitive types (i.e. types other than int, bool, string, etc.). Note the
+" optional non-capturing group is later in the pattern to avoid backtracking.
 syntax match goNonPrimitiveType /\<\K\k*\%(\.\K\k*\)\?\[\?/ contained contains=goPackageName,goTypeArgs
 syntax match goPackageName      /\<\K\k*\ze\./              contained nextgroup=goDot
 
@@ -435,10 +439,9 @@ syntax match goTypeParamComma /,/     contained skipempty skipwhite nextgroup=go
 syntax region goTypeConstraint start='\s'ms=e+1 end=/[,\]]/me=s-1 contained contains=@goType,goOperator
 
 syntax region goFuncParams      matchgroup=goFuncParens start='(' end=')' contained contains=goParam,goComma skipwhite nextgroup=goFuncReturnType,goFuncMultiReturn,goFuncBlock
-syntax match  goFuncReturnType  /\s*\zs(\@<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+{\@<!/ contained contains=@goType skipempty skipwhite nextgroup=goFuncBlock
+syntax match  goFuncReturnType  /\s*\zs(\@1<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+{\@1<!/ contained contains=@goType skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma skipempty skipwhite nextgroup=goFuncBlock
-" syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=@goType,goComma skipempty skipwhite nextgroup=goFuncBlock
-syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained contains=TOP,@Spell skipwhite nextgroup=goFuncCallArgs
+syntax region goFuncBlock       matchgroup=goFuncBraces start='{' end='}' contained contains=TOP,@Spell skipwhite nextgroup=goFuncCallArgs
 
 syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
 syntax region goReceiverBlock matchgroup=goReceiverParens start='(' end=')' contained contains=goParam
@@ -509,7 +512,7 @@ syntax region goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens st
 
 hi link goStructType       Keyword
 hi link goStructTypeBraces goBraces
-hi link goStructTypeField  NONE
+hi link goStructTypeField  Identifier
 hi link goStructTypeTag    PreProc
 hi link goStructValue      goNonPrimitiveType
 hi link goStructValueField Identifier
@@ -521,7 +524,8 @@ hi link goInterfaceMethod       goFuncName
 hi link goInterfaceMethodParens goFuncParens
 
 call s:HiConfig('goStructTypeTag',    ['go_highlight_struct_tags'])
-call s:HiConfig('goStructValueField', ['go_highlight_struct_fields'], #{default: 0})
+call s:HiConfig('goStructValueField', ['go_highlight_struct_fields'],      #{default: 0})
+call s:HiConfig('goStructTypeField',  ['go_highlight_struct_type_fields'], #{default: 0})
 
 " }}} Structs and Interfaces
 
