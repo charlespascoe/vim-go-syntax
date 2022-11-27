@@ -1,3 +1,7 @@
+" Author:    Charles Pascoe
+" License:   MIT (see LICENSE)
+" Copyright: 2022 Charles Pascoe
+
 if !exists('main_syntax')
     if exists("b:current_syntax") && !get(g:, 'go_highlight_override_existing_syntax', 1)
         finish
