@@ -81,7 +81,7 @@ endif
 " 'goWordStart' reduces the number of times each of the 'nextgroups' is checked,
 " but also prevents 'goImportedPackages' (a keyword syntax element) from
 " overriding matches (e.g. in 'goStructValueField').
-syntax match goWordStart /\<\ze\K/ nextgroup=goStructValue,goFuncCall,goImportedPackages,goLabel
+syntax match goWordStart /\<\ze\K/ nextgroup=goStructValue,goFuncCall,goImportedPackages
 
 " 'goDotExpr' matches a dot that is found as a part of an expression, whereas
 " 'goDot' is used to highlight a dot in non-expression contexts (e.g. the dot
@@ -105,12 +105,10 @@ syntax cluster goDotExpr contains=goFuncCall,goTypeAssertion,goField,goStructVal
 syntax region  goDotComment start=+//+  end=+$+   contained contains=@goCommentSpell,goCommentTodo keepend skipwhite skipempty nextgroup=@goDotExpr
 syntax region  goDotComment start=+/\*+ end=+\*/+ contained contains=@goCommentSpell,goCommentTodo keepend skipwhite skipempty nextgroup=@goDotExpr
 
-syntax match goField /\K\k*/     contained
-syntax match goLabel /\K\k*\ze:/ contained
-
 " 'goEmptyLine' is used to prevent odd highlighting behaviour when the current
 " line ends in a dot while the user is typing (see 'nextgroup' of 'goDotExpr')
-syntax match goEmptyLine /^$/ contained
+syntax match goEmptyLine /^$/    contained
+syntax match goField     /\K\k*/ contained
 
 " TODO: Only valid operators?
 syntax match   goOperator     /[-+*/!:=%&^<>|~]\+/
@@ -161,7 +159,7 @@ call s:HiConfig('goGenerateComment', ['go_highlight_generate_tags'], #{offgroup:
 
 syntax region goString       start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=@goStringSpell,goStringEscape,goDoubleQuoteEscape,goStringFormat
 syntax match  goStringEscape /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
-syntax match  goStringFormat /\v\%%(\%|[-+# 0]*%([1-9]\d*|\*)?%(\.%(\d+|\*)?)?[EFGOTUXbcdefgopqstvxf])/ contained
+syntax match  goStringFormat /\v\%%(\%|[-+# 0]*%([1-9]\d*|\*)?%(\.%(\d+|\*)?)?%(\[\d+\])?[EFGOTUXbcdefgopqstvxf])/ contained
 
 " 'goInvalidRuneLiteral' is a loose match for all single-quote sequences; they
 " are highlighted as errors. If they contain a valid 'goRuneLiteral' or the
@@ -302,10 +300,13 @@ if s:assignOrShortDecl
     " Note: the pattern /[{;]\@1<=/ seems to be equivalent to /[{;]\@1<=./
     " which is why it had such poor performance and conflict with other
     " patterns; splitting it into two specific patterns works better
+    " TODO: Should these two also have 'goLabel' in their 'nextgroup' lists?
     syntax match goStatementStart /[{;]\@1<=\ze\s/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
     syntax match goStatementStart /[{;]\@1<=\ze\K/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
-    syntax match goStatementStart /^\ze\s/         contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
 endif
+
+syntax match goStatementStart /^\ze\s/         contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl,goLabel
+syntax match goStatementStart /^\ze\K/         contained containedin=goFuncBlock nextgroup=goLabel
 
 " }}} Constants and Variables
 
@@ -492,8 +493,11 @@ call s:HiConfig('goTypeParam',  ['go_highlight_type_parameters'])
 
 " Structs and Interfaces {{{
 
+" Note: 'goStructTypeBlock' has 'nextgroup=goStructBlock' to handle anonymous
+" struct types
+
 syntax keyword goStructType struct skipempty skipwhite nextgroup=goStructTypeBlock
-syntax region  goStructTypeBlock matchgroup=goStructTypeBraces start='{' end='}' extend contained contains=goEmbeddedType,goStructTypeField,goComment,goStructTypeTag,goDot,goSemicolon
+syntax region  goStructTypeBlock matchgroup=goStructTypeBraces start='{' end='}' extend contained contains=goEmbeddedType,goStructTypeField,goComment,goStructTypeTag,goDot,goSemicolon skipwhite nextgroup=goStructBlock
 syntax region  goStructTypeTag start='`' end='`' contained
 syntax region  goStructTypeTag start='"' skip='\\"' end='"' oneline contained
 syntax match   goStructTypeField /\%(_\|\K\k*\)\%(,\s*\%(_\|\K\k*\)\)*/ contained skipwhite contains=goComma,goUnderscore nextgroup=@goType
@@ -556,6 +560,9 @@ call s:HiConfig('goBuiltins', ['go_highlight_builtins'], #{offgroup: 'goFuncCall
 " TODO: Field access?
 
 " Flow Control {{{
+
+" 'goStatementStart' is used to avoid searching for 'goLabel' everywhere
+syntax match goLabel /\K\k*\ze:/ contained
 
 " TODO: Figure out how to remove goShortVarDecl; this could simplify if,
 " for, and switch

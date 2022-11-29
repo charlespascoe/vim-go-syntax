@@ -40,7 +40,11 @@ fun! s:FindAllPackageNames()
             let l:last = l:path[len(l:path) - 1]
             call add(l:packages, split(l:last, '\.')[0])
         elseif trim(l:import) != ''
-            call add(l:packages, split(l:import, ' ')[0])
+            let first = split(l:import, ' ')[0]
+
+            if first =~? '^[a-z]\+$'
+                call add(l:packages, first)
+            endif
         end
     endfor
 
