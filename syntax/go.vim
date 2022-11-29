@@ -157,7 +157,7 @@ call s:HiConfig('goGenerateComment', ['go_highlight_generate_tags'], #{offgroup:
 
 " Strings
 
-syntax region goString       start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=@goStringSpell,goStringEscape,goDoubleQuoteEscape,goStringFormat
+syntax region goString       matchgroup=goStringEnds start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=@goStringSpell,goStringEscape,goDoubleQuoteEscape,goStringFormat
 syntax match  goStringEscape /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
 syntax match  goStringFormat /\v\%%(\%|[-+# 0]*%([1-9]\d*|\*)?%(\.%(\d+|\*)?)?%(\[\d+\])?[EFGOTUXbcdefgopqstvxf])/ contained
 
@@ -169,7 +169,7 @@ syntax region goInvalidRuneLiteral start=+'+ skip=+\\'+ end=+'+ keepend oneline 
 syntax match  goRuneLiteral        /\v'%(.*%#|[^\\]|\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\']))'/ contained contains=goRuneLiteralEscape
 syntax match  goRuneLiteralEscape  /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\'])/ contained
 
-syntax region goRawString start='`' end='`' keepend
+syntax region goRawString matchgroup=goRawStringEnds start='`' end='`' keepend
 
 " Numbers
 
@@ -205,6 +205,7 @@ syntax keyword goNil          nil
 " Highlighting
 
 hi link goString             String
+hi link goStringEnds         goString
 hi link goStringEscape       SpecialChar
 hi link goStringFormat       SpecialChar
 
@@ -213,6 +214,7 @@ hi link goRuneLiteral        Character
 hi link goRuneLiteralEscape  goStringFormat
 
 hi link goRawString          String
+hi link goRawStringEnds      goRawString
 
 hi link goNumber             Number
 hi link goNumberType         SpecialChar
@@ -386,7 +388,7 @@ hi link goPointer             goOperator
 hi link goTypeDecl            Keyword
 hi link goTypeParens          goParens
 hi link goTypeDeclGroupParens goParens
-hi link goTypeDeclName        Typedef
+hi link goTypeDeclName        Type
 hi link goTypeParamBrackets   goBrackets
 hi link goTypeAssign          goOperator
 
@@ -554,6 +556,7 @@ hi link goMakeBuiltin goBuiltins
 hi link goNewBuiltin  goBuiltins
 
 call s:HiConfig('goBuiltins', ['go_highlight_builtins'], #{offgroup: 'goFuncCall'})
+call s:HiConfig('goFuncCallParens', ['go_highlight_function_call_parens'])
 
 " }}} Builtins
 
