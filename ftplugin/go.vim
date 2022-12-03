@@ -72,3 +72,49 @@ if get(g:, 'go_highlight_imports', 1)
     au CursorHold,CursorHoldI <buffer> call <SID>RefreshPackageHighlighting()
     au BufEnter <buffer> ++once call <SID>RefreshPackageHighlighting()
 endif
+
+fun SemTest(file)
+    let s = system('gopls semtok '.a:file)
+    let l:res = []
+    let foo = substitute(s, '\%(/\*⇒\d,namespace,\[\]\*/\(\h\w\+\)\.\)\?/\*⇒\d,type,\[\]\*/\(\h\w\+\)', '\=add(l:res, [submatch(1), submatch(2)])', 'g')
+    echom l:res
+
+    for [pack, type] in l:res
+        if pack != ''
+            let pack_syn = 'goPackage_'.pack
+            let pack_dot_syn = pack_syn.'_Dot'
+            let pack_type_group = pack_syn.'_Types'
+
+            if !hlexists(pack_syn)
+                exec 'syn keyword '.pack_syn.' '.pack.' nextgroup='.pack_dot_syn
+                exec 'syn match '.pack_dot_syn.' /./ contained nextgroup=@'.pack_type_group
+                exec 'hi link '.pack_syn.' goPackageName'
+                exec 'hi link '.pack_dot_syn.' goDot'
+                echom 'syn keyword '.pack_syn.' '.pack.' nextgroup='.pack_dot_syn
+                echom 'syn match '.pack_dot_syn.' /./ contained nextgroup=@'.pack_type_group
+                echom 'hi link '.pack_syn.' goPackageName'
+                echom 'hi link '.pack_dot_syn.' goDot'
+            endif
+
+            let pack_type_syn = pack_syn.'_Type_'.type
+
+            if !hlexists(pack_type_syn)
+                exec 'syn keyword '.pack_type_syn.' '.type.' contained nextgroup=goStructValueTypeArgs'
+                exec 'syn cluster '.pack_type_group.' add='.pack_type_syn
+                exec 'hi link '.pack_type_syn.' Type'
+                echom 'syn keyword '.pack_type_syn.' '.type.' contained'
+                echom 'syn cluster '.pack_type_group.' add='.pack_type_syn
+                echom 'hi link '.pack_type_syn.' Type'
+            endif
+        else
+            let type_syn = 'goType_'.type
+
+            if !hlexists(type_syn)
+                exec 'syn keyword '.type_syn.' '.type.' nextgroup=goStructValueTypeArgs'
+                exec 'hi link '.type_syn.' Type'
+            endif
+        endif
+    endfor
+
+    return l:res
+endfun
