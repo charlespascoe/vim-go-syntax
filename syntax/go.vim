@@ -88,7 +88,7 @@ syntax match goWordStart /\<\ze\K/ nextgroup=goStructValue,goFuncCall,goImported
 " between a package and a type). 'goDotExpr' significantly improves the
 " performance of searching for fields and type assertions.
 syntax match goDot     /\./ contained
-syntax match goDotExpr /\./ skipwhite skipempty nextgroup=@goDotExpr
+syntax match goDotExpr /\./ skipwhite skipnl nextgroup=@goDotExpr
 
 " The cluster of items that could follow a dot in an expression
 syntax cluster goDotExpr contains=goFuncCall,goTypeAssertion,goField,goStructValue,goDotComment,goEmptyLine
@@ -102,13 +102,10 @@ syntax cluster goDotExpr contains=goFuncCall,goTypeAssertion,goField,goStructVal
 "       blah
 "
 " Both 'baz' and 'blah' are correctly highlighted as fields
-syntax region  goDotComment start=+//+  end=+$+   contained contains=@goCommentSpell,goCommentTodo keepend skipwhite skipempty nextgroup=@goDotExpr
-syntax region  goDotComment start=+/\*+ end=+\*/+ contained contains=@goCommentSpell,goCommentTodo keepend skipwhite skipempty nextgroup=@goDotExpr
+syntax region goDotComment start=+//+  end=+$+   contained contains=@goCommentSpell,goCommentTodo keepend skipwhite skipnl nextgroup=@goDotExpr
+syntax region goDotComment start=+/\*+ end=+\*/+ contained contains=@goCommentSpell,goCommentTodo keepend skipwhite skipnl nextgroup=@goDotExpr
 
-" 'goEmptyLine' is used to prevent odd highlighting behaviour when the current
-" line ends in a dot while the user is typing (see 'nextgroup' of 'goDotExpr')
-syntax match goEmptyLine /^$/    contained
-syntax match goField     /\K\k*/ contained
+syntax match goField /\K\k*/ contained
 
 " TODO: Only valid operators?
 syntax match   goOperator     /[-+*/!:=%&^<>|~]\+/
@@ -129,9 +126,9 @@ hi link goDotComment goComment
 call s:HiConfig('goField',     ['go_highlight_fields'], #{default: 0})
 call s:HiConfig('goLabel',     ['go_highlight_labels'])
 call s:HiConfig('goOperator',  ['go_highlight_operators'])
-call s:HiConfig('goDot',       ['go_highlight_dot',       'go_highlight_separators'])
-call s:HiConfig('goComma',     ['go_highlight_comma',     'go_highlight_separators'])
-call s:HiConfig('goSemicolon', ['go_highlight_semicolon', 'go_highlight_separators'])
+call s:HiConfig('goDot',       ['go_highlight_dot',       'go_highlight_separators'], #{default: 0})
+call s:HiConfig('goComma',     ['go_highlight_comma',     'go_highlight_separators'], #{default: 0})
+call s:HiConfig('goSemicolon', ['go_highlight_semicolon', 'go_highlight_separators'], #{default: 0})
 
 " }}} Misc
 
@@ -254,20 +251,21 @@ call s:HiConfig('goParens',   ['go_highlight_parens'])
 
 " Constants and Variables {{{
 
-" TODO: Only valid operators?
-" syntax match goVarAssign    /\<\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*\%(<<\|>>\|&^\|[-+*/%&|^]\)\?=[^=]/ contains=goComma,goUnderscore contained
+" TODO Slice/map assignment?
 syntax match goVarAssign       /\<\K\k*\%(\.\K\k*\)*\%(\s*,\s*\%(\K\k*\%(\.\K\k*\)*\)\?\)*\ze\s*\%(<<\|>>\|&^\|[-+*/%&|^]\)\?=[^=]/ contains=goComma,goUnderscore,goVarStructAssign contained
 syntax match goShortVarDecl    /\<\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/                                                           contains=goComma,goUnderscore                   contained
-
 syntax match goVarStructAssign /\<\K\k*\%(\.\K\k*\)\+/ contained contains=goDotExpr
 
-syntax keyword goConstDecl const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
-syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
+" TODO: Should these be skipempty instead of skipnl?
+syntax keyword goConstDecl const skipnl skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
+syntax keyword goVarDecl   var   skipnl skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
 
 syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=TOP,@Spell
 syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=TOP,@Spell
 
-syntax match goVarIdentifier /\<\K\k*/ contained skipwhite nextgroup=@goType
+syntax match goVarIdentifier /\<\K\k*/ contained skipwhite nextgroup=goVarComma,@goType
+" TODO: Is it worth supporting comments here?
+syntax match goVarComma /,/ contained skipwhite skipnl nextgroup=goVarIdentifier
 
 " goVarGroupIdentifier finds positions inside a var/const declaration group
 " (e.g. 'const (...)') that may be followed by an identifier. Prevents
@@ -285,6 +283,7 @@ hi link goConstDeclParens    goParens
 hi link goVarDeclParens      goParens
 
 hi link goVarIdentifier      Identifier
+hi link goVarComma           goComma
 hi link goVarGroupIdentifier goVarIdentifier
 hi link goShortVarDecl       Identifier
 
@@ -430,8 +429,6 @@ call s:HiConfig('goMapBrackets',  ['go_highlight_map_brackets'])
 " Functions {{{
 
 " Unfortunately limited to at most 3 nested type args
-" TODO: Figure out a better alternative to the long containedin (some kind of
-" expression group?)
 syntax match  goFuncCall /\v\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ contained nextgroup=goFuncCallTypeArgs,goFuncCallArgs
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goFuncCallArgs
 syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=TOP,@Spell
@@ -575,15 +572,12 @@ call s:HiConfig('goFuncCallParens', ['go_highlight_function_call_parens'])
 
 " }}} Builtins
 
-" TODO: Field access?
 
 " Flow Control {{{
 
 " 'goStatementStart' is used to avoid searching for 'goLabel' everywhere
 syntax match goLabel /\K\k*\ze:/ contained
 
-" TODO: Figure out how to remove goShortVarDecl; this could simplify if,
-" for, and switch
 syntax keyword goIf   if skipempty skipwhite nextgroup=goShortVarDecl
 syntax keyword goElse else
 
