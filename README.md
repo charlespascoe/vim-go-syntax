@@ -2,9 +2,13 @@
 
 `vim-go-syntax` provides fast, IDE-like Vim syntax highlighting for Go.
 
-Code highlighting should help the user quickly scan and read code, using colour
-to convey additional information inferred from grammar of the language. Existing
-Vim syntax definitions for Go do a poor job of this, which motivated me to write
+> **Feedback is welcome!** This syntax is still fairly new and I'd like feedback
+> or issues to improve it. Please see if there's already an issue open or create
+> a new one.
+
+Code highlighting helps users quickly scan and read code, using colour to convey
+additional information inferred from grammar of the language. Existing Vim
+syntax definitions for Go do a poor job of this, which motivated me to write
 `vim-go-syntax` from the ground up using the Go language specification. Not only
 does it fix many of the shortfalls of existing syntax definitions, it's more
 than 2x faster even with _all_ features enabled!
@@ -26,7 +30,8 @@ Key features compared to `vim-go` and the built-in Vim syntax:
       `new()`, etc.
 - **Correctly highlights imported package names**
 - **Godoc highlighting in `vim-go`**
-- **Vastly more fine-grain highlight [Configuration](#configuration)**
+- **More customisable [Configuration](#configuration)**
+- **Vastly more fine-grained highlighting**
 - **Parentheses, Braces, and Brackets highlighted and individually configurable**
     - E.g. struct and function braces can be different
 - **Correctly highlight functions**, including:
@@ -50,7 +55,165 @@ Key features compared to `vim-go` and the built-in Vim syntax:
 
 ## Configuration
 
-TODO
+Listed in the table below are various options that can be used to customise
+highlighting. These can be set at any time before the syntax is loaded, usually
+your `.vimrc` is best.
+
+Each option can be:
+
+- A `1` or a `0` to enable/disable the highlighting. For example:
+
+```vim
+let g:go_highlight_parens = 0
+let g:go_highlight_fields = 1
+```
+
+- A syntax group name; see '`:help group-name`' to see what default groups are
+  available and how your colour scheme styles them. For example, to make
+  function calls look like types:
+
+```vim
+let g:go_highlight_function_calls = 'Type'
+```
+
+- A highlight description; see '`:help hi`' for syntax and options. For example,
+  to make type parameters blue and italic:
+
+```vim
+let g:go_highlight_type_parameters = 'ctermfg=4 cterm=italic'
+```
+
+If you want even more customisation, you can override the default highlighting
+by adding custom highlighting rules to `~/.vim/after/syntax/go.vim` (you'll need
+to create this file first). The previous configuration examples could also be
+achieved like this:
+
+```vim
+" ~/.vim/after/syntax/go.vim
+
+hi clear goParens
+
+hi link goField Identifier
+
+hi link goFuncCall Type
+
+hi goTypeParam ctermfg=4 cterm=italic
+```
+
+See `syntax/go.vim` for the names of all syntax and
+highlight groups.
+
+Summary of options (see below table for descriptions):
+
+| Configuration Option                         | Default     | Default Group |
+| -------------------------------------------- | ----------- | ------------- |
+| `g:go_highlight_braces`                      | **Enabled** | `Delimiter`   |
+| `g:go_highlight_brackets`                    | **Enabled** | `Delimiter`   |
+| `g:go_highlight_builtins`                    | **Enabled** | `Special`     |
+| `g:go_highlight_comma`                       |   Disabled  | `Delimiter`   |
+| `g:go_highlight_dot`                         | **Enabled** | `Operator`    |
+| `g:go_highlight_fields`                      |   Disabled  | `Identifier`  |
+| `g:go_highlight_functions`                   | **Enabled** | `Function`    |
+| `g:go_highlight_function_parens`             | **Enabled** | `Delimiter`   |
+| `g:go_highlight_function_braces`             | **Enabled** | `Delimiter`   |
+| `g:go_highlight_function_calls`              | **Enabled** | `Function`    |
+| `g:go_highlight_function_call_parens`        | **Enabled** | `Delimiter`   |
+| `g:go_highlight_generate_tags`               | **Enabled** | `PreProc`     |
+| `g:go_highlight_rune_literal_error`          | **Enabled** | `Error`       |
+| `g:go_highlight_labels`                      | **Enabled** | `Label`       |
+| `g:go_highlight_map_brackets`                | **Enabled** | `Delimiter`   |
+| `g:go_highlight_operators`                   | **Enabled** | `Operator`    |
+| `g:go_highlight_function_parameters`         | **Enabled** | `Identifier`  |
+| `g:go_highlight_parens`                      | **Enabled** | `Delimiter`   |
+| `g:go_highlight_semicolon`                   |   Disabled  | `Delimiter`   |
+| `g:go_highlight_short_variable_declarations` | **Enabled** | `Identifier`  |
+| `g:go_highlight_slice_brackets`              | **Enabled** | `Delimiter`   |
+| `g:go_highlight_format_strings`              | **Enabled** | `SpecialChar` |
+| `g:go_highlight_struct_type_fields`          |   Disabled  | `Identifier`  |
+| `g:go_highlight_struct_tags`                 | **Enabled** | `PreProc`     |
+| `g:go_highlight_struct_fields`               |   Disabled  | `Identifier`  |
+| `g:go_highlight_types`                       | **Enabled** | `Type`        |
+| `g:go_highlight_type_parameters`             | **Enabled** | `Identifier`  |
+| `g:go_highlight_variable_assignments`        |   Disabled  | `Special`     |
+| `g:go_highlight_variable_declarations`       | **Enabled** | `Identifier`  |
+
+
+- `g:go_highlight_braces`
+    - All braces (`{}`). More specific brace options (e.g.
+  `g:go_highlight_function_braces`) will take precedence over this option.
+- `g:go_highlight_brackets`
+    - All brackets (`[]`). More specific bracket options (e.g.
+      `g:go_highlight_map_brackets`) will take precedence over this option.
+- `g:go_highlight_builtins`
+    - Highlight built-in functions differently from other functions.
+- `g:go_highlight_comma`
+    - Commas.
+- `g:go_highlight_dot`
+    - Dot operators, e.g. the dot in `foo.bar()`
+- `g:go_highlight_fields`
+    - Fields in expressions, e.g. `bar` in
+  `foo.bar = 123`
+- `g:go_highlight_functions`
+    - Function declaration names, e.g. `foo` in `func foo() { }`. Also applies
+      to method names.
+- `g:go_highlight_function_parens`
+    - Parentheses around parameter list and receiver type.
+- `g:go_highlight_function_braces`
+    - The braces of the function block.
+- `g:go_highlight_function_calls`
+    - Function calls. Turning this off does not affect other syntax elements
+      (e.g. generics, function call parentheses).
+- `g:go_highlight_function_call_parens`
+    - The parentheses of a function call.
+- `g:go_highlight_generate_tags`
+    - Generate comments, e.g. `//go:generate ...`. Turning this off makes them
+      look like regular comments.
+- `g:go_highlight_rune_literal_error`
+    - Invalid rune literals.
+- `g:go_highlight_labels`
+    - User-defined labels.
+- `g:go_highlight_map_brackets`
+    - The brackets in map types, e.g.
+  `map[string]int`.
+- `g:go_highlight_operators`
+    - Operators including assignment, e.g. `+`, `-`, `&&`, `||`, `=`, `:=`, etc.
+- `g:go_highlight_function_parameters`
+    - Parameter names, e.g. `bar` in `func
+  foo(bar int)`
+- `g:go_highlight_parens`
+    - All parentheses. More specific parenthesis options (e.g.
+      `g:go_highlight_function_parens`) will take precedence.
+- `g:go_highlight_semicolon`
+    - Semicolons.
+- `g:go_highlight_short_variable_declarations`
+    - Highlight the names of new variables defined by the declaration syntax,
+      e.g. `a` and `b` in `a, b := foo()`.
+- `g:go_highlight_slice_brackets`
+    - The brackets in slice types, e.g. `[]string`.
+- `g:go_highlight_format_strings`
+    - Format placeholders in in format strings, e.g. `%s` in `fmt.Printf("%s",
+      foo)`
+- `g:go_highlight_struct_type_fields`
+    - Field names in struct types, e.g. `Bar` in `type Foo struct { Bar int }`
+- `g:go_highlight_struct_tags`
+    - Struct tags, the backtick-delimited strings in structs, e.g. `` `json:bar` ``
+      in ``struct { Bar int `json:"bar"` }``.
+- `g:go_highlight_struct_fields`
+    - Field names in struct literals, e.g. `Bar` in `f := Foo{ Bar: 123 }`.
+- `g:go_highlight_types`
+    - Type declaration names, e.g. `Foo` in `type Foo struct { Bar int }`. Even
+      with this option off, types parameters etc. will still be highlighted
+      as types.
+- `g:go_highlight_type_parameters`
+    - Type parameter names in type parameter lists, e.g. the `T` in the brackets
+      of `type Foo[T] { Bar T }`; the `T` in the struct will be highlighted as a
+      type.
+- `g:go_highlight_variable_assignments`
+    - Variable names in assignments, e.g. `a` and `b` in `a, b = foo()`.
+- `g:go_highlight_variable_declarations`
+    - Names in `var` or `const` assignments, e.g. `a` in `var a []string`. Also
+      applies to short variable declarations (i.e. `:=`) unless
+      `g:go_highlight_short_variable_declarations` is set.
 
 ## Caveats
 
