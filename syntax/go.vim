@@ -117,18 +117,18 @@ hi link goField      Identifier
 hi link goLabel      Label
 hi link goOperator   Operator
 hi link goDot        goOperator
-hi link goComma      goOperator
-hi link goSemicolon  goOperator
+hi link goComma      Delimiter
+hi link goSemicolon  Delimiter
 hi link goUnderscore Special
 hi link goDotExpr    goDot
 hi link goDotComment goComment
 
-call s:HiConfig('goField',     ['go_highlight_fields'], #{default: 0})
+call s:HiConfig('goField',     ['go_highlight_fields'],    #{default: 0})
 call s:HiConfig('goLabel',     ['go_highlight_labels'])
 call s:HiConfig('goOperator',  ['go_highlight_operators'])
-call s:HiConfig('goDot',       ['go_highlight_dot',       'go_highlight_separators'], #{default: 0})
-call s:HiConfig('goComma',     ['go_highlight_comma',     'go_highlight_separators'], #{default: 0})
-call s:HiConfig('goSemicolon', ['go_highlight_semicolon', 'go_highlight_separators'], #{default: 0})
+call s:HiConfig('goDot',       ['go_highlight_dot'])
+call s:HiConfig('goComma',     ['go_highlight_comma'],     #{default: 0})
+call s:HiConfig('goSemicolon', ['go_highlight_semicolon'], #{default: 0})
 
 " }}} Misc
 
@@ -576,30 +576,30 @@ call s:HiConfig('goFuncCallParens', ['go_highlight_function_call_parens'])
 " Flow Control {{{
 
 " 'goStatementStart' is used to avoid searching for 'goLabel' everywhere
-syntax match goLabel /\K\k*\ze:/ contained
+syntax match   goLabel           /\K\k*\ze:/ contained
 
-syntax keyword goIf   if skipempty skipwhite nextgroup=goShortVarDecl
-syntax keyword goElse else
+syntax keyword goIf              if     skipwhite skipempty nextgroup=goShortVarDecl
+syntax keyword goElse            else
 
-syntax keyword goFor         for skipempty skipwhite nextgroup=goShortVarDecl
-syntax keyword goForKeywords range break continue
+syntax keyword goFor             for    skipwhite skipempty nextgroup=goShortVarDecl
+syntax keyword goForKeywords     range break continue
 
-syntax keyword goSwitch         switch skipwhite nextgroup=goShortVarDecl
-syntax keyword goSelect         select
-syntax keyword goSwitchKeywords case fallthrough default
+syntax keyword goSwitch          switch skipwhite           nextgroup=goShortVarDecl
+syntax keyword goSelect          select
+syntax keyword goSwitchKeywords  case fallthrough default
 
-syntax match  goSwitchTypeCase  /^\s\+case\s/ contained containedin=goSwitchTypeBlock skipwhite nextgroup=@goType
-syntax region goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}' contained contains=TOP,@Spell
+syntax match   goSwitchTypeCase  /^\s\+case\s/ contained containedin=goSwitchTypeBlock skipwhite nextgroup=@goType
+syntax region  goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}' contained contains=TOP,@Spell
 
-hi link goIf   Conditional
-hi link goElse goIf
+hi link goIf               Conditional
+hi link goElse             goIf
 
-hi link goFor         Repeat
-hi link goForKeywords goFor
+hi link goFor              Repeat
+hi link goForKeywords      goFor
 
-hi link goSwitch         Conditional
-hi link goSelect         goSwitch
-hi link goSwitchKeywords goSwitch
+hi link goSwitch           Conditional
+hi link goSelect           goSwitch
+hi link goSwitchKeywords   goSwitch
 
 hi link goSwitchTypeBraces goBraces
 hi link goSwitchTypeCase   goSwitchKeywords
