@@ -255,8 +255,11 @@ call s:HiConfig('goParens',   ['go_highlight_parens'])
 " Constants and Variables {{{
 
 " TODO: Only valid operators?
-syntax match goVarAssign    /\<\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*[-+*/!%&^<>|~]*=/ contains=goComma,goUnderscore contained
-syntax match goShortVarDecl /\<\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/               contains=goComma,goUnderscore contained
+" syntax match goVarAssign    /\<\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*\%(<<\|>>\|&^\|[-+*/%&|^]\)\?=[^=]/ contains=goComma,goUnderscore contained
+syntax match goVarAssign       /\<\K\k*\%(\.\K\k*\)*\%(\s*,\s*\%(\K\k*\%(\.\K\k*\)*\)\?\)*\ze\s*\%(<<\|>>\|&^\|[-+*/%&|^]\)\?=[^=]/ contains=goComma,goUnderscore,goVarStructAssign contained
+syntax match goShortVarDecl    /\<\K\k*\%(\s*,\s*\%(\K\k*\)\?\)*\ze\s*:=/                                                           contains=goComma,goUnderscore                   contained
+
+syntax match goVarStructAssign /\<\K\k*\%(\.\K\k*\)\+/ contained contains=goDotExpr
 
 syntax keyword goConstDecl const skipempty skipwhite nextgroup=goVarIdentifier,goConstDeclGroup
 syntax keyword goVarDecl   var   skipempty skipwhite nextgroup=goVarIdentifier,goVarDeclGroup
@@ -289,11 +292,21 @@ hi link goVarAssign          Special
 
 hi link goIota               Special
 
+let s:assignOrShortDecl = 0
+
+syntax cluster goStatementStartGroup contains=goLabel
+
 call s:HiConfig('goVarIdentifier', ['go_highlight_variable_declarations'])
-let s:assignOrShortDecl = (
-    \ s:HiConfig('goVarAssign',     ['go_highlight_variable_assignments'], #{default: 0}) ||
-    \ s:HiConfig('goShortVarDecl',  ['go_highlight_short_variable_declarations','go_highlight_variable_declarations'])
-    \)
+
+if s:HiConfig('goVarAssign', ['go_highlight_variable_assignments'], #{default: 0})
+    let s:assignOrShortDecl = 1
+    syntax cluster goStatementStartGroup add=goVarAssign
+endif
+
+if s:HiConfig('goShortVarDecl', ['go_highlight_short_variable_declarations','go_highlight_variable_declarations'])
+    let s:assignOrShortDecl = 1
+    syntax cluster goStatementStartGroup add=goShortVarDecl
+endif
 
 if s:assignOrShortDecl
     " This lookbehind is checked for a lot of characters in the file, which is
@@ -302,13 +315,14 @@ if s:assignOrShortDecl
     " Note: the pattern /[{;]\@1<=/ seems to be equivalent to /[{;]\@1<=./
     " which is why it had such poor performance and conflict with other
     " patterns; splitting it into two specific patterns works better
-    " TODO: Should these two also have 'goLabel' in their 'nextgroup' lists?
-    syntax match goStatementStart /[{;]\@1<=\ze\s/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
-    syntax match goStatementStart /[{;]\@1<=\ze\K/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl
+    " TODO Should these two also have 'goLabel' in their 'nextgroup' lists?
+    " TODO Should labels match under these circumstances?
+    syntax match goStatementStart /[{;]\@1<=\ze\s/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=@goStatementStartGroup
+    syntax match goStatementStart /[{;]\@1<=\ze\K/ contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=@goStatementStartGroup
 endif
 
-syntax match goStatementStart /^\ze\s/         contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=goVarAssign,goShortVarDecl,goLabel
-syntax match goStatementStart /^\ze\K/         contained containedin=goFuncBlock nextgroup=goLabel
+syntax match goStatementStart /^\ze\s/         contained containedin=goFuncBlock,goSwitchTypeBlock skipwhite nextgroup=@goStatementStartGroup
+syntax match goStatementStart /^\ze\K/         contained containedin=goFuncBlock,goSwitchTypeBlock           nextgroup=@goStatementStartGroup
 
 " }}} Constants and Variables
 
@@ -450,7 +464,7 @@ syntax match  goFuncReturnType  /\s*\zs(\@1<!\%(\%(interface\|struct\)\s*{\|[^{]
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncBlock       matchgroup=goFuncBraces start='{' end='}' contained contains=TOP,@Spell skipwhite nextgroup=goFuncCallArgs
 
-syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*(/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
+syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*[[(]/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
 syntax region goReceiverBlock matchgroup=goReceiverParens start='(' end=')' contained contains=goParam
 
 syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType,goVariadic
@@ -515,18 +529,19 @@ syntax match  goStructValueField /\<\K\k*\ze:/ contained containedin=goStructBlo
 syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfaceBlock
 " TODO: Maybe don't just put goOperator in here and instead use the correct
 " symbols
-syntax region goInterfaceBlock matchgroup=goInterfaceBraces start='{' end='}' contained extend contains=@goType,goOperator,goInterfaceMethod,goComment
-syntax match  goInterfaceMethod /\<\K\k*\ze\s*(/ contained skipwhite nextgroup=goInterfaceMethodParams
-syntax region goInterfaceMethodParams matchgroup=goInterfaceMethodParens start='(' end=')' contained contains=goFuncTypeParam,goComma skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
-syntax region goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma
+syntax region goInterfaceBlock             matchgroup=goInterfaceBraces       start='{'  end='}'  contained contains=@goType,goOperator,goInterfaceMethod,goComment extend
+syntax region goInterfaceMethodTypeParams  matchgroup=goTypeParamBrackets     start='\[' end='\]' contained contains=goTypeParam,goComma                            nextgroup=goInterfaceMethodParams
+syntax region goInterfaceMethodParams      matchgroup=goInterfaceMethodParens start='('  end=')'  contained contains=goFuncTypeParam,goComma                        skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
+syntax region goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens start='('  end=')'  contained contains=goNamedReturnValue,goComma
+syntax match  goInterfaceMethod            /\v\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ contained skipwhite nextgroup=goInterfaceMethodTypeParams,goInterfaceMethodParams
 
-hi link goStructType       Keyword
-hi link goStructTypeBraces goBraces
-hi link goStructTypeField  Identifier
-hi link goStructTypeTag    PreProc
-hi link goStructValue      goNonPrimitiveType
-hi link goStructValueField Identifier
-hi link goStructBraces     goBraces
+hi link goStructType            Keyword
+hi link goStructTypeBraces      goBraces
+hi link goStructTypeField       Identifier
+hi link goStructTypeTag         PreProc
+hi link goStructValue           goNonPrimitiveType
+hi link goStructValueField      Identifier
+hi link goStructBraces          goBraces
 
 hi link goInterfaceType         goStructType
 hi link goInterfaceBraces       goBraces
