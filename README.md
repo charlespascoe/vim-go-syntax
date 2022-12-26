@@ -6,14 +6,19 @@
 > or issues to improve it. Please see if there's already an issue open or create
 > a new one.
 
-Code highlighting helps users quickly scan and read code, using colour to convey
-additional information inferred from grammar of the language. Existing Vim
-syntax definitions for Go do a poor job of this, which motivated me to write
-`vim-go-syntax` from the ground up using the Go language specification. Not only
-does it fix many of the shortfalls of existing syntax definitions, it's more
-than 2x faster even with _all_ features enabled!
+Syntax highlighting can make reading code easier and faster by using colour to
+convey additional information. Existing Vim syntax definitions for Go are OK,
+but fail to correctly highlight useful information, which motivated me to write
+`vim-go-syntax` from the ground up using the Go language specification. Not
+only does it fix many of the shortfalls of existing syntax definitions, it's
+more than 2x faster even with _all_ features enabled!
 
-TODO: Screenshot comparison.
+<a href="Syntax%20Comparison.png" target="_blank">
+<img
+    src="Syntax%20Comparison.png"
+    title="Syntax Comparison; vim-go on the left, vim-go-syntax on the right"
+/>
+</a>
 
 Comparison of `vim-go` (left) with `vim-go-syntax` (right) using my colour
 scheme; see `:help group-name` to see how your colour scheme highlights Vim's
