@@ -3,6 +3,7 @@ syntax clear
 
 let main_syntax = 'godoc'
 syntax include @go syntax/go.vim
+unlet main_syntax
 
 syntax match godocTypeLine /^\%1l.*$/ contains=@godocType,@go
 
@@ -31,4 +32,3 @@ hi link godocFieldIdentifier    Identifier
 hi link godocMethodDot          goDot
 
 let b:current_syntax = 'godoc'
-unlet main_syntax

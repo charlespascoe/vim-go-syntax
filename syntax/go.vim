@@ -3,7 +3,7 @@
 " Copyright: 2022 Charles Pascoe
 
 if !exists('main_syntax')
-    if exists("b:current_syntax") && !get(g:, 'go_highlight_override_existing_syntax', 1)
+    if exists("b:current_syntax") && !get(g:, "go_highlight_override_existing_syntax", 1)
         finish
     endif
 
@@ -57,7 +57,7 @@ fun s:getconfig(keys, default)
 endfun
 
 fun s:HiConfig(group, option_names, opts={})
-    " All syntax is highlighted by default, unless turned off by the user
+    " Most syntax is highlighted by default, unless turned off by the user
     let l:opt = s:getconfig(a:option_names, get(a:opts, 'default', 1))
     let l:cmd = ''
 
