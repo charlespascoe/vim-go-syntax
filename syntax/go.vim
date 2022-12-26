@@ -37,6 +37,17 @@ syntax iskeyword @,48-57,_,192-255
 
 " Config Utils {{{
 
+let s:cleanup = []
+
+com! -nargs=* GoDeferCleanup call add(s:cleanup, <q-args>)
+GoDeferCleanup delcom GoDeferCleanup
+
+fun s:Cleanup()
+    for l:cmd in s:cleanup
+        exec l:cmd
+    endfor
+endfun
+
 fun s:getconfig(keys, default)
     if len(a:keys) == 0
         return a:default
@@ -72,6 +83,25 @@ endif
 if get(g:, 'go_highlight_comment_spellcheck', 1)
     syntax cluster goCommentSpell contains=@Spell
 endif
+
+
+" TODO: Rethink this approach (use string/array approach)
+if s:getconfig(['g:go_fold_function_blocks', 'go_syntax_fold'], 1)
+    com! -nargs=* GoFoldFunc <args> fold
+else
+    com! -nargs=* GoFoldFunc <args>
+endif
+
+GoDeferCleanup delcom GoFoldFunc
+
+
+if s:getconfig(['g:go_fold_struct_blocks', 'go_syntax_fold'], 1)
+    com! -nargs=* GoFoldStruct <args> fold
+else
+    com! -nargs=* GoFoldStruct <args>
+endif
+
+GoDeferCleanup delcom GoFoldStruct
 
 " }}} Config Utils
 
@@ -459,7 +489,7 @@ syntax region goTypeConstraint start='\s'ms=e+1 end=/[,\]]/me=s-1 contained cont
 syntax region goFuncParams      matchgroup=goFuncParens start='(' end=')' contained contains=goParam,goComma skipwhite nextgroup=goFuncReturnType,goFuncMultiReturn,goFuncBlock
 syntax match  goFuncReturnType  /\s*\zs(\@1<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+{\@1<!/ contained contains=@goType skipempty skipwhite nextgroup=goFuncBlock
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma skipempty skipwhite nextgroup=goFuncBlock
-syntax region goFuncBlock       matchgroup=goFuncBraces start='{' end='}' contained contains=TOP,@Spell skipwhite nextgroup=goFuncCallArgs
+GoFoldFunc syntax region goFuncBlock       matchgroup=goFuncBraces start='{' end='}' contained contains=TOP,@Spell skipwhite nextgroup=goFuncCallArgs
 
 syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*[[(]/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
 syntax region goReceiverBlock matchgroup=goReceiverParens start='(' end=')' contained contains=goParam
@@ -520,7 +550,7 @@ syntax match   goEmbeddedType /\*\?\K\k*\%(\.\K\k*\)\?\%#\@1<!$/ contained conta
 " braces, but it's hard to reliably highlight
 syntax match  goStructValue /\v\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\{/ contained nextgroup=goStructValueTypeArgs,goStructBlock
 syntax region goStructValueTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goStructBlock
-syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP,@Spell
+GoFoldStruct syntax region goStructBlock matchgroup=goStructBraces start='{' end='}' contained contains=TOP,@Spell
 syntax match  goStructValueField /\<\K\k*\ze:/ contained containedin=goStructBlock
 
 syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfaceBlock
@@ -618,6 +648,8 @@ syntax match  goTypeAssertion /(type)/ contained contains=goParenBlock,goTypeDec
 hi link goKeywords Keyword
 
 " }}} Misc
+
+call s:Cleanup()
 
 if !exists('main_syntax')
     let b:current_syntax = 'go'
