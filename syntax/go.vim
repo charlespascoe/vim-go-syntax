@@ -463,7 +463,8 @@ syntax match  goFuncCall /\v\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma nextgroup=goFuncCallArgs
 syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=TOP,@Spell
 
-syntax keyword goFuncDecl func skipempty skipwhite nextgroup=goMethodReceiver,goFuncName,goFuncParams
+syntax match goFuncDecl /func/  skipempty skipwhite nextgroup=goFuncName,goFuncParams
+syntax match goFuncDecl /^func/ skipempty skipwhite nextgroup=goFuncName,goMethodReceiver
 
 syntax match goVariadic  /\.\.\./ contained skipwhite nextgroup=@goType
 syntax match goArgSpread /\.\.\./ contained containedin=goFuncCallArgs
@@ -491,8 +492,7 @@ syntax match  goFuncReturnType  /\s*\zs(\@1<!\%(\%(interface\|struct\)\s*{\|[^{]
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma skipempty skipwhite nextgroup=goFuncBlock
 GoFoldFunc syntax region goFuncBlock       matchgroup=goFuncBraces start='{' end='}' contained contains=TOP,@Spell skipwhite nextgroup=goFuncCallArgs
 
-syntax match  goMethodReceiver /([^,]\+)\ze\s\+\K\k*\s*[[(]/ contained contains=goReceiverBlock skipempty skipwhite nextgroup=goFuncName
-syntax region goReceiverBlock matchgroup=goReceiverParens start='(' end=')' contained contains=goParam
+syntax region goMethodReceiver matchgroup=goReceiverParens start='(' end=')' contained contains=goFuncTypeParam skipempty skipwhite nextgroup=goFuncName
 
 syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType,goVariadic
 syntax match goNamedReturnValue /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
