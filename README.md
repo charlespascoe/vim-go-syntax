@@ -13,7 +13,7 @@ but fail to correctly highlight useful information, which motivated me to write
 only does it fix many of the shortfalls of existing syntax definitions, it's
 more than 2x faster even with _all_ features enabled!
 
-<a href="Syntax%20Comparison.png" target="_blank">
+<a href="Syntax%20Comparison.png?raw=true" target="_blank">
 <img
     src="Syntax%20Comparison.png"
     title="Syntax Comparison; vim-go on the left, vim-go-syntax on the right"
