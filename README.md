@@ -6,12 +6,12 @@
 > or issues to improve it. Please see if there's already an issue open or create
 > a new one.
 
-Syntax highlighting can make reading code easier and faster by using colour to
-convey additional information. Existing Vim syntax definitions for Go are OK,
-but fail to correctly highlight useful information, which motivated me to write
-`vim-go-syntax` from the ground up using the Go language specification. Not
-only does it fix many of the shortfalls of existing syntax definitions, it's
-more than 2x faster even with _all_ features enabled!
+Syntax highlighting can make reading code easier by using colour to convey
+additional information. Existing Vim syntax definitions for Go are OK, but fail
+to correctly highlight useful parts of the syntax, which motivated me to write
+`vim-go-syntax` from the ground up using the Go language specification. Not only
+does it fix many of the shortfalls of existing syntax definitions, it's more
+than 2x faster even with _all_ features enabled!
 
 <a href="Syntax%20Comparison.png?raw=true" target="_blank">
 <img
