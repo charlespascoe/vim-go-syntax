@@ -477,13 +477,13 @@ call s:HiConfig('goMapBrackets',  ['go_highlight_map_brackets'])
 " Unfortunately limited to at most 3 nested type args
 syntax match  goFuncCall /\v\K\k*\ze%(\(|\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\]\()/ contained nextgroup=goFuncCallTypeArgs,goFuncCallArgs
 syntax region goFuncCallTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma,goComment nextgroup=goFuncCallArgs
-syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=@goExpr,goComment
+syntax region goFuncCallArgs     matchgroup=goFuncCallParens    start='('  end=')'  contained contains=@goExpr,goComment,goArgSpread
 
 syntax keyword goFuncDecl    func           skipwhite skipempty nextgroup=goFuncName,goMethodReceiver
 syntax keyword goFuncLiteral func contained skipwhite skipempty nextgroup=goFuncName,goFuncParams
 
 syntax match goVariadic  /\.\.\./ contained skipwhite nextgroup=@goType
-syntax match goArgSpread /\.\.\./ contained containedin=goFuncCallArgs
+syntax match goArgSpread /\.\.\./ contained
 
 " TODO: Should this be "goParams" rather than "goParam"?
 syntax match goParam      /\K\k*/ contained skipwhite skipempty nextgroup=goParamComma,goVariadic,@goType
