@@ -19,10 +19,10 @@
 
 ### Fixed
 
-- Fix issue with slice of pointer type not highlighting user-defined types
+- Fix slice of pointer types not highlighting user-defined types correctly
   correctly
-- Fix issue where identifiers after case statements in switch statements nested
-  inside type switch statements were highlighted as types
+- Fix incorrect highlighting of identifiers after case statements in normal
+  switch statements nested inside type switch statements
 
 ## Version 0.1.0 - 2022/12/26
 
