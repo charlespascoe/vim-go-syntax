@@ -642,7 +642,10 @@ syntax keyword goSelect          select contained
 syntax keyword goSwitchKeywords  case fallthrough default contained
 
 syntax match   goSwitchTypeCase  /^\s\+case\s/ contained skipwhite nextgroup=@goType
-syntax region  goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}' contained contains=goSwitchTypeCase,@goStatement
+syntax region  goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}' contained contains=goSwitchTypeCase,goSwitchTypeBlockNestedBraces,@goStatement
+
+" goSwitchTypeBlockNestedBraces prevents goSwitchTypeCase from matching "case" in a regular nested switch statement
+syntax region  goSwitchTypeBlockNestedBraces matchgroup=goBraces start='{' end='}' contained contains=@goStatement
 
 hi link goIf               Conditional
 hi link goElse             goIf
@@ -666,9 +669,10 @@ syntax keyword goKeywords defer go contained
 
 " goTypeAssertion is a part of the nextgroup list of goDotExpr
 syntax region goTypeAssertion matchgroup=goParens start=/(/ end=/)/ contained contains=@goType
-syntax match  goTypeAssertion /(type)/ contained contains=goParenBlock,goTypeDecl skipwhite nextgroup=goSwitchTypeBlock
+syntax match  goTypeAssertion /(type)/ contained contains=goParenBlock skipwhite nextgroup=goSwitchTypeBlock
 
-hi link goKeywords Keyword
+hi link goKeywords      Keyword
+hi link goTypeAssertion Special
 
 " }}} Misc
 
