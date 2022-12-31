@@ -556,10 +556,9 @@ syntax keyword goInterfaceType interface skipempty skipwhite nextgroup=goInterfa
 " TODO: Maybe don't just put goOperator in here and instead use the correct
 " symbols
 syntax region goInterfaceBlock             matchgroup=goInterfaceBraces       start='{'  end='}'  contained contains=@goType,goOperator,goInterfaceMethod,goComment extend
-syntax region goInterfaceMethodTypeParams  matchgroup=goTypeParamBrackets     start='\[' end='\]' contained contains=goTypeParam,goComma                            nextgroup=goInterfaceMethodParams
 syntax region goInterfaceMethodParams      matchgroup=goInterfaceMethodParens start='('  end=')'  contained contains=goFuncTypeParam,goComma                        skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
 syntax region goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens start='('  end=')'  contained contains=goNamedReturnValue,goComma
-syntax match  goInterfaceMethod            /\v\K\k*\ze%(\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\])?\(/ contained skipwhite nextgroup=goInterfaceMethodTypeParams,goInterfaceMethodParams
+syntax match  goInterfaceMethod            /\K\k*\ze(/ contained skipwhite nextgroup=goInterfaceMethodParams
 
 hi link goStructType            Keyword
 hi link goStructTypeBraces      goBraces
