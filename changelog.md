@@ -1,11 +1,11 @@
 # Changelog
 
-## Unreleased
+## Version 0.2.0 - 2022/12/31
 
 ### Changed
 
-- Significantly refactor and improve syntax code, including refactoring various
-  "hacks"
+- Significantly refactor and improve syntax code, including replacing various
+  "hacks" with better solutions
     - It now only looks for expressions and statements where they are expected
       to be; please open an issue if certain syntax elements aren't highlighted
       correctly.
