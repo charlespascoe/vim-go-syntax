@@ -411,8 +411,7 @@ syntax region  goMapKeyType matchgroup=goMapBrackets start='\[' end='\]' contain
 syntax match goSliceOrArrayType /\[\%(\d\+\|\.\.\.\)\?\]/ contained contains=goNumber,goDot skipwhite nextgroup=@goType
 
 " A lookbehind is used to distinguish a new slice value with slice indexing.
-" The lookbehind has variable length, so it has a reasonable 20 character limit
-syntax match goSliceOrArray /\k\@1<!\[\%(\d\+\|\.\.\.\)\?\]\ze\%(\K\|\[\|(\)/ contains=goNumber,goDot skipwhite nextgroup=goSliceItemType
+syntax match goSliceOrArray /\k\@1<!\[\%(\d\+\|\.\.\.\)\?\]\ze\%(\*\|\K\|\[\|(\)/ contains=goNumber,goDot skipwhite nextgroup=goSliceItemType
 
 " Only look to the end of the line for the item type, and let slices etc. extend
 " across lines as necessary. Note the first '(' is to match the first paren
