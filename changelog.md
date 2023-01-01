@@ -1,5 +1,22 @@
 # Changelog
 
+
+## Unreleased
+
+### Changed
+
+- Generate comments are now contained correctly
+
+### Fixed
+
+- Generic parentheses, brackets, and braces are no longer contained thus
+  allowing them to match at the top-level, fixing some odd highlighting issues
+- Fixed `make()` of slice not highlighting other arguments correctly
+- Fixed `make()` of slice of functions not highlighting multi-value returns
+  correctly
+- Fixed slice literals whose item type is a function with a return type
+- Fixed nested slice literals
+
 ## Version 0.2.0 - 2022/12/31
 
 ### Changed

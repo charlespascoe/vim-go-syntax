@@ -179,7 +179,7 @@ syntax region  goComment start=+//+  end=+$+   contains=@goCommentSpell,goCommen
 syntax region  goComment start=+/\*+ end=+\*/+ contains=@goCommentSpell,goCommentTodo keepend
 
 syntax keyword goCommentTodo     contained TODO FIXME XXX TBD NOTE
-syntax region  goGenerateComment start=+//go:generate+ end=+$+   containedin=goComment
+syntax region  goGenerateComment start=+//go:generate+ end=+$+ contained containedin=goComment
 
 hi link goCommentTodo     Todo
 hi link goComment         Comment
@@ -277,9 +277,9 @@ call s:HiConfig('goInvalidRuneLiteral', ['go_highlight_rune_literal_error'], #{o
 
 " Simple Blocks {{{
 
-syntax region goBracketBlock matchgroup=goBrackets start='\[' end='\]' contained transparent extend
-syntax region goParenBlock   matchgroup=goParens   start='('  end=')'  contained transparent extend
-syntax region goBraceBlock   matchgroup=goBraces   start='{'  end='}'  contained transparent extend
+syntax region goBracketBlock matchgroup=goBrackets start='\[' end='\]' transparent extend
+syntax region goParenBlock   matchgroup=goParens   start='('  end=')'  transparent extend
+syntax region goBraceBlock   matchgroup=goBraces   start='{'  end='}'  transparent extend
 
 hi link goBraces   Delimiter
 hi link goBrackets Delimiter
@@ -427,12 +427,16 @@ syntax region  goMapKeyType matchgroup=goMapBrackets start='\[' end='\]' contain
 syntax match goSliceOrArrayType /\[\%(\d\+\|\.\.\.\)\?\]/ contained contains=goNumber,goDot skipwhite nextgroup=@goType
 
 " A lookbehind is used to distinguish a slice/array literal with slice indexing
-syntax match goSliceOrArrayLiteral /\k\@1<!\[[0-9.]*\]\ze\%(\*\|\K\|\[\|(\)/ contained contains=goNumber,goDot skipwhite nextgroup=goSliceItemType
+syntax match goSliceOrArrayLiteral /\k\@1<!\[[0-9.]*\]\ze\%(\*\|\K\|\[\|(\)/ contained contains=goNumber,goDot skipwhite nextgroup=goSliceLiteralType
 
-" Only look to the end of the line for the item type, and let slices etc. extend
-" across lines as necessary. Note the first '(' is to match the first paren
-" around the type, which is then extended by goTypeParens.
-syntax match goSliceItemType /(\|\%(\%(interface\|struct\)\s*{\|[^{()]\)\+/ contained contains=@goType skipwhite nextgroup=goSliceItems
+" goSliceOrArrayLiteralType allows matching complex types for slice literals
+" such as named return parameters when using a slice of functions without
+" parentheses, e.g. "[]func() (foo, bar int) { f1, f2, f3 }", which is
+" technically valid, albeit hard to read. The use of a region allows the
+" contained matches (goSliceLiteralTypeMatch) to extend the region as necessary,
+" allowing the type to contain braces, such as "[]struct{X, Y int}{ ... }"
+syntax region goSliceLiteralType start='\S' end='\ze{\|$' contained contains=goSliceLiteralTypeMatch skipwhite skipnl nextgroup=goSliceItems
+syntax match  goSliceLiteralTypeMatch /\%(\%(interface\|struct\)\s*{\|[^{]\)\+/ contained contains=@goType
 
 syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=goStructLiteralBlock,@goExpr,goComment
 
@@ -493,7 +497,6 @@ syntax match goFuncName /\K\k*/ contained skipwhite nextgroup=goFuncTypeParams,g
 
 syntax region goFuncTypeParams matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=goTypeParam,goComma,goComment nextgroup=goFuncParams
 
-" TODO: is skipempty needed?
 syntax match goTypeParam      /\K\k*/ contained skipwhite skipempty nextgroup=goTypeParamComma,goTypeConstraint
 syntax match goTypeParamComma /,/     contained skipwhite skipempty nextgroup=goTypeParam
 
@@ -503,7 +506,10 @@ syntax match goTypeParamComma /,/     contained skipwhite skipempty nextgroup=go
 syntax region goTypeConstraint start='\s'ms=e+1 end=/[,\]]/me=s-1 contained contains=@goType,goTypeConstraintSymbols
 syntax match  goTypeConstraintSymbols /[~|]/ contained
 
-syntax match  goFuncReturnType  /\s*\zs(\@1<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+{\@1<!/ contained contains=@goType skipwhite skipempty nextgroup=goFuncBlock
+" This is odd, but the \s*\zs at the start seems to ensure that the (\@1<!
+" negative lookbehind works as desired (i.e. to not steal a match from
+" goFuncMultiReturn); look into this further and try to remove this.
+syntax match  goFuncReturnType  /\s*\zs(\@1<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+/ contained contains=@goType skipwhite skipempty nextgroup=goFuncBlock
 
 syntax region goFuncParams      matchgroup=goFuncParens            start='(' end=')' contained contains=goParam,goComma,goComment            skipwhite           nextgroup=goFuncReturnType,goFuncMultiReturn,goFuncBlock
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma,goComment skipwhite skipempty nextgroup=goFuncBlock
@@ -569,7 +575,10 @@ syntax match   goEmbeddedType    /\*\?\K\k*\%(\.\K\k*\)\?\%#\@1<!$/     containe
 syntax match  goStructLiteral /\v\K\k*\ze%(\{|\[\s*\n?%(,\n|[^\[\]]|\[\s*\n?%(,\n|[^\[\]]|\[[^\[\]]*\])*\])*\]\{)/ contained nextgroup=goStructLiteralTypeArgs,goStructLiteralBlock
 syntax region goStructLiteralTypeArgs matchgroup=goTypeParamBrackets start='\[' end='\]' contained contains=@goType,goUnderscore,goComma,goComment nextgroup=goStructLiteralBlock
 
-GoFoldStruct syntax region goStructLiteralBlock matchgroup=goStructBraces start='{' end='}' contained contains=goStructLiteralField,goComma,@goExpr,goComment
+" goStructLiteralBlock contains itself to 1) prevent weird highlighting while
+" typing, and 2) allow slice literals of slices of structs to highlight
+" correctly
+GoFoldStruct syntax region goStructLiteralBlock matchgroup=goStructBraces start='{' end='}' contained contains=goStructLiteralField,goComma,@goExpr,goComment,goStructLiteralBlock
 
 syntax match   goStructLiteralField /\<\K\k*\ze:/ contained nextgroup=goStructLiteralColon
 syntax match   goStructLiteralColon /:/           contained
@@ -609,10 +618,11 @@ call s:HiConfig('goStructTypeField',    ['go_highlight_struct_type_fields'], #{d
 syntax keyword goBuiltins append cap close complex copy delete imag len panic print println real recover contained skipwhite nextgroup=goFuncCallArgs
 
 syntax keyword goMakeBuiltin make contained skipwhite nextgroup=goMakeBlock
-syntax region  goMakeBlock   matchgroup=goFuncCallParens start='(' end=')' contained contains=@goType,@goExpr,goComment
+syntax region  goMakeBlock   matchgroup=goFuncCallParens start='(' end=')' contained contains=@goType,goMakeArguments,goComment
+syntax region  goMakeArguments start=',' end='\ze)' contained contains=@goExpr,gComment
 
 syntax keyword goNewBuiltin new contained skipwhite nextgroup=goNewBlock
-syntax region  goNewBlock   matchgroup=goFuncCallParens start='(' end=')' contained contains=@goType,@goExpr,goComment
+syntax region  goNewBlock   matchgroup=goFuncCallParens start='(' end=')' contained contains=@goType,goComment
 
 hi link goBuiltins    Special
 hi link goMakeBuiltin goBuiltins
