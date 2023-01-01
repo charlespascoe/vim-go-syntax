@@ -109,8 +109,8 @@ GoDeferCleanup delcom GoFoldStruct
 
 " Two top-level clusters to allow regions to specify what syntax they can
 " contain
-syntax cluster goExpr      contains=@goLiteral,goDotExpr,goFuncLiteral,goCommaExpr,goOperator,goWordStart,goParenBlock,goBracketBlock
-syntax cluster goStatement contains=@goExpr,@goFlowControl,goReturn,goSemicolon,goBraceBlock,goComment,goStatementStart,goConstDecl,goVarDecl,goTypeDecl,goKeywords
+syntax cluster goExpr      contains=@goLiteral,goDotExpr,goFuncLiteral,goCommaExpr,goOperator,goWordStart,goParenBlock,goBracketBlock,goComment
+syntax cluster goStatement contains=@goExpr,@goFlowControl,goReturn,goSemicolon,goBraceBlock,goStatementStart,goConstDecl,goVarDecl,goTypeDecl,goKeywords
 
 syntax match goIdentifier /\K\k*/ contained nextgroup=goDotExpr skipwhite
 
@@ -307,8 +307,8 @@ syntax keyword goVarDecl   var   skipwhite skipnl nextgroup=goVarIdentifier,goVa
 " syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=@goExpr,goComment,goSemicolon,goVarGroupIdentifier
 " syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=@goExpr,goComment,goSemicolon,goVarGroupIdentifier,goIota
 
-syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=@goExpr,goComment,goSemicolon,goVarIdentifier
-syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=@goExpr,goComment,goSemicolon,goVarIdentifier,goIota
+syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=@goExpr,goSemicolon,goVarIdentifier
+syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=@goExpr,goSemicolon,goVarIdentifier,goIota
 
 " TODO: Is it worth supporting comments in goVarComma??
 syntax match goVarIdentifier /\<\K\k*/ contained skipwhite        nextgroup=goVarComma,@goType
@@ -438,7 +438,7 @@ syntax match goSliceOrArrayLiteral /\k\@1<!\[[0-9.]*\]\ze\%(\*\|\K\|\[\|(\)/ con
 syntax region goSliceLiteralType start='\S' end='\ze{\|$' contained contains=goSliceLiteralTypeMatch skipwhite skipnl nextgroup=goSliceItems
 syntax match  goSliceLiteralTypeMatch /\%(\%(interface\|struct\)\s*{\|[^{]\)\+/ contained contains=@goType
 
-syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=goStructLiteralBlock,@goExpr,goComment
+syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=goStructLiteralBlock,@goExpr
 
 syntax match goChannel    /<-chan/        contained contains=goChannelDir skipwhite nextgroup=@goType
 syntax match goChannel    /chan\%(<-\)\?/ contained contains=goChannelDir skipwhite nextgroup=@goType
@@ -578,7 +578,7 @@ syntax region goStructLiteralTypeArgs matchgroup=goTypeParamBrackets start='\[' 
 " goStructLiteralBlock contains itself to 1) prevent weird highlighting while
 " typing, and 2) allow slice literals of slices of structs to highlight
 " correctly
-GoFoldStruct syntax region goStructLiteralBlock matchgroup=goStructBraces start='{' end='}' contained contains=goStructLiteralField,goComma,@goExpr,goComment,goStructLiteralBlock
+GoFoldStruct syntax region goStructLiteralBlock matchgroup=goStructBraces start='{' end='}' contained contains=goStructLiteralField,goComma,@goExpr,goStructLiteralBlock
 
 syntax match   goStructLiteralField /\<\K\k*\ze:/ contained nextgroup=goStructLiteralColon
 syntax match   goStructLiteralColon /:/           contained

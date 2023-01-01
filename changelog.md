@@ -16,6 +16,8 @@
   correctly
 - Fixed slice literals whose item type is a function with a return type
 - Fixed nested slice literals
+- Fixed comments in certain places where expressions are expected (e.g. function
+  arguments)
 
 ## Version 0.2.0 - 2022/12/31
 
