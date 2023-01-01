@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added support for short declaration in `select` statements, e.g. `case a :=
+  <-c:`
+
+### Fixed
+
+- Fixed `range` not highlighting correctly
+
 ## Version 0.2.1 - 2023/01/01
 
 ### Changed

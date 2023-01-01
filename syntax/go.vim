@@ -109,15 +109,13 @@ GoDeferCleanup delcom GoFoldStruct
 
 " Two top-level clusters to allow regions to specify what syntax they can
 " contain
-syntax cluster goExpr      contains=@goLiteral,goDotExpr,goFuncLiteral,goCommaExpr,goOperator,goWordStart,goParenBlock,goBracketBlock,goComment
+syntax cluster goExpr      contains=@goLiteral,goForRange,goDotExpr,goFuncLiteral,goCommaExpr,goOperator,goWordStart,goParenBlock,goBracketBlock,goComment
 syntax cluster goStatement contains=@goExpr,@goFlowControl,goReturn,goSemicolon,goBraceBlock,goStatementStart,goConstDecl,goVarDecl,goTypeDecl,goKeywords
-
-syntax match goIdentifier /\K\k*/ contained nextgroup=goDotExpr skipwhite
 
 " 'goWordStart' reduces the number of times each of the 'nextgroups' is checked,
 " but also prevents 'goImportedPackages' (a keyword syntax element) from
 " overriding matches (e.g. in 'goStructLiteralField').
-syntax match goWordStart /\<\ze\K/ contained nextgroup=goStructLiteral,goFuncCall,goBuiltins,goMakeBuiltin,goNewBuiltin,goImportedPackages,goIdentifier
+syntax match goWordStart /\<\ze\K/ contained nextgroup=goStructLiteral,goFuncCall,goBuiltins,goMakeBuiltin,goNewBuiltin,goImportedPackages
 
 " 'goDotExpr' matches a dot that is found as a part of an expression, whereas
 " 'goDot' is used to highlight a dot in non-expression contexts (e.g. the dot
@@ -636,7 +634,7 @@ call s:HiConfig('goFuncCallParens', ['go_highlight_function_call_parens'])
 
 " Flow Control {{{
 
-syntax cluster goFlowControl contains=goIf,goElse,goFor,goForKeywords,goSwitch,goSelect,goSwitchKeywords
+syntax cluster goFlowControl contains=goIf,goElse,goFor,goForRange,goForKeywords,goSwitch,goCase,goSelect,goSwitchKeywords
 
 " 'goStatementStart' is used to avoid searching for 'goLabel' everywhere
 syntax match   goLabel           /\K\k*\ze:/ contained
@@ -645,11 +643,13 @@ syntax keyword goIf              if     contained skipwhite skipempty nextgroup=
 syntax keyword goElse            else   contained
 
 syntax keyword goFor             for    contained skipwhite skipempty nextgroup=goShortVarDecl
-syntax keyword goForKeywords     range break continue contained
+syntax keyword goForRange        range contained
+syntax keyword goForKeywords     break continue contained
 
 syntax keyword goSwitch          switch contained skipwhite           nextgroup=goShortVarDecl
 syntax keyword goSelect          select contained
-syntax keyword goSwitchKeywords  case fallthrough default contained
+syntax keyword goCase            case   contained skipwhite           nextgroup=goShortVarDecl
+syntax keyword goSwitchKeywords  fallthrough default contained
 
 syntax match   goSwitchTypeCase  /^\s\+case\s/ contained skipwhite nextgroup=@goType
 syntax region  goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}' contained contains=goSwitchTypeCase,goSwitchTypeBlockNestedBraces,@goStatement
@@ -661,10 +661,12 @@ hi link goIf               Conditional
 hi link goElse             goIf
 
 hi link goFor              Repeat
+hi link goForRange         goFor
 hi link goForKeywords      goFor
 
 hi link goSwitch           Conditional
 hi link goSelect           goSwitch
+hi link goCase             goSwitch
 hi link goSwitchKeywords   goSwitch
 
 hi link goSwitchTypeBraces goBraces
