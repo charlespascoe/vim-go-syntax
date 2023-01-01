@@ -428,13 +428,13 @@ syntax match goSliceOrArrayType /\[\%(\d\+\|\.\.\.\)\?\]/ contained contains=goN
 syntax match goSliceOrArrayLiteral /\k\@1<!\[[0-9.]*\]\ze\%(\*\|\K\|\[\|(\)/ contained contains=goNumber,goDot skipwhite nextgroup=goSliceLiteralType
 
 " goSliceOrArrayLiteralType allows matching complex types for slice literals
-" such as named return parameters when using a slice of functions without
-" parentheses, e.g. "[]func() (foo, bar int) { f1, f2, f3 }", which is
-" technically valid, albeit hard to read. The use of a region allows the
-" contained matches (goSliceLiteralTypeMatch) to extend the region as necessary,
-" allowing the type to contain braces, such as "[]struct{X, Y int}{ ... }"
-syntax region goSliceLiteralType start='\S' end='\ze{\|$' contained contains=goSliceLiteralTypeMatch skipwhite skipnl nextgroup=goSliceItems
-syntax match  goSliceLiteralTypeMatch /\%(\%(interface\|struct\)\s*{\|[^{]\)\+/ contained contains=@goType
+" such as a slice of functions without parentheses, e.g. "[]func(a, b Foo) Bar {
+" f1, f2, f3 }", which is technically valid, albeit hard to read. The use of a
+" region allows the contained matches (goSliceLiteralTypeMatch) to extend the
+" region as necessary, allowing the type to contain braces, such as "[]struct{X,
+" Y int}{ ... }"
+syntax region goSliceLiteralType start='\S' end='\ze[{(]\|$' contained contains=goSliceLiteralTypeMatch skipwhite skipnl nextgroup=goSliceItems
+syntax match  goSliceLiteralTypeMatch /(\|\%(\%(interface\|struct\)\s*{\|[^{(]\)\+/ contained contains=@goType
 
 syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=goStructLiteralBlock,@goExpr
 

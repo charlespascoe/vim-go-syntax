@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Fixed slice type conversion, e.g. `[]byte("foo")`
+    - This was caused by trying to improve support for slice literals of
+      functions in 0.2.1. It's not possible to reconcile these two things, and
+      so type conversion was preferred and a caveat for the function
+      highlighting was added to the readme.
+
 ## Version 0.2.2 - 2023/01/01
 
 ### Added
