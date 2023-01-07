@@ -202,7 +202,7 @@ syntax match  goStringFormat /\v\%%(\%|[-+# 0]*%([1-9]\d*|\*)?%(\.%(\d+|\*)?)?%(
 " are highlighted as errors. If they contain a valid 'goRuneLiteral' or the
 " cursor is present at the end, then the 'goRuneLiteral' highlighting will
 " override the 'goInvalidRuneLiteral' highlighting and thus look like a string.
-syntax region goInvalidRuneLiteral start=+'+ skip=+\\'+ end=+'+ keepend oneline contains=goRuneLiteral contained
+syntax region goInvalidRuneLiteral start=+'+ skip=+\\.+ end=+'+ keepend oneline contains=goRuneLiteral contained
 syntax match  goRuneLiteral        /\v'%(.*%#|[^\\]|\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\']))'/ contained contains=goRuneLiteralEscape
 syntax match  goRuneLiteralEscape  /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\'])/ contained
 
