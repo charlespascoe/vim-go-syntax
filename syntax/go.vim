@@ -122,7 +122,7 @@ syntax match goWordStart /\<\ze\K/ contained nextgroup=goStructLiteral,goFuncCal
 " between a package and a type). 'goDotExpr' significantly improves the
 " performance of searching for fields and type assertions.
 syntax match goDot     /\./ contained
-syntax match goDotExpr /\./ contained nextgroup=@goDotExpr skipwhite skipnl
+syntax match goDotExpr /\./ nextgroup=@goDotExpr skipwhite skipnl
 
 " The cluster of items that could follow a dot in an expression
 syntax cluster goDotExpr contains=goFuncCall,goStructLiteral,goTypeAssertion,goField,goDotComment
@@ -142,12 +142,12 @@ syntax region goDotComment start=+/\*+ end=+\*/+ contained contains=@goCommentSp
 syntax match goField /\K\k*/ contained
 
 " TODO: Only valid operators?
-syntax match   goAssign     /=/                            skipwhite nextgroup=@goExpr
-syntax match   goOperator   /[-+*/!:=%&^<>|~]\+/ contained skipwhite nextgroup=@goExpr
-syntax match   goCommaExpr  /,/                  contained skipwhite skipnl nextgroup=@goExpr
+syntax match   goAssign     /=/                  skipwhite nextgroup=@goExpr
+syntax match   goOperator   /[-+*/!:=%&^<>|~]\+/ skipwhite nextgroup=@goExpr
+syntax match   goCommaExpr  /,/                  skipwhite skipnl nextgroup=@goExpr
 syntax match   goComma      /,/                  contained
-syntax match   goSemicolon  /;/                  contained
-syntax keyword goUnderscore _                    contained
+syntax match   goSemicolon  /;/
+syntax keyword goUnderscore _
 
 hi link goField      Identifier
 hi link goLabel      Label
@@ -194,7 +194,7 @@ syntax cluster goLiteral contains=goString,goRawString,goInvalidRuneLiteral,goNu
 
 " Strings
 
-syntax region goString       matchgroup=goStringEnds start='"' skip=/\\\\\|\\"/ end='"\|$' contained oneline contains=@goStringSpell,goStringEscape,goDoubleQuoteEscape,goStringFormat
+syntax region goString       matchgroup=goStringEnds start='"' skip=/\\\\\|\\"/ end='"\|$' oneline contains=@goStringSpell,goStringEscape,goDoubleQuoteEscape,goStringFormat
 syntax match  goStringEscape /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\"])/ contained
 syntax match  goStringFormat /\v\%%(\%|[-+# 0]*%([1-9]\d*|\*)?%(\.%(\d+|\*)?)?%(\[\d+\])?[EFGOTUXbcdefgopqstvxf])/ contained
 
@@ -202,13 +202,18 @@ syntax match  goStringFormat /\v\%%(\%|[-+# 0]*%([1-9]\d*|\*)?%(\.%(\d+|\*)?)?%(
 " are highlighted as errors. If they contain a valid 'goRuneLiteral' or the
 " cursor is present at the end, then the 'goRuneLiteral' highlighting will
 " override the 'goInvalidRuneLiteral' highlighting and thus look like a string.
-syntax region goInvalidRuneLiteral start=+'+ skip=+\\.+ end=+'+ keepend oneline contains=goRuneLiteral contained
+syntax region goInvalidRuneLiteral start=+'+ skip=+\\.+ end=+'+ keepend oneline contains=goRuneLiteral
 syntax match  goRuneLiteral        /\v'%(.*%#|[^\\]|\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\']))'/ contained contains=goRuneLiteralEscape
 syntax match  goRuneLiteralEscape  /\v\\%(\o{3}|x\x{2}|u\x{4}|U\x{8}|[abfnrtv\\'])/ contained
 
-syntax region goRawString matchgroup=goRawStringEnds start='`' end='`' keepend contained
+syntax region goRawString matchgroup=goRawStringEnds start='`' end='`' keepend
 
 " Numbers
+
+" 'goNumberZeroLeader' searches for a digit so that various goNumber patterns
+" don't have to, improving match performance
+syntax match goNumberLeader      /\ze\<[0-9]/ nextgroup=goNumber
+syntax match goNumberLeader      /\ze\.[0-9]/ nextgroup=goNumber
 
 " TODO: Highlight all forms of invalid number formatting? E.g. underscores in
 " certain places
@@ -220,11 +225,6 @@ syntax match goNumber /\c0b[01_]\+/  contained
 syntax match goNumber /\c0o[0-7_]\+/ contained
 syntax match goNumber /\v\c0x[0-9a-f_]*%(\.[0-9a-f_]*)?%([pP][-+]?[0-9a-f][0-9a-f_]*)?i?/ contained contains=goNumberHexExp
 
-" 'goNumberZeroLeader' searches for a digit so that the above three don't have to,
-" improving match performance
-syntax match goNumberLeader      /\ze\<[0-9]/ contained nextgroup=goNumber
-syntax match goNumberLeader      /\ze\.[0-9]/ contained nextgroup=goNumber
-
 syntax match goNumberSpecialChar /[_i]/       contained containedin=goNumber
 syntax match goNumberType        /\c0[box]/   contained containedin=goNumber
 syntax match goNumberError       /_\{2,\}/    contained containedin=goNumber
@@ -235,10 +235,10 @@ syntax match goNumberHexExp      /\cp/        contained
 
 " Other
 
-syntax keyword goBooleanTrue  true  contained
-syntax keyword goBooleanFalse false contained
+syntax keyword goBooleanTrue  true
+syntax keyword goBooleanFalse false
 
-syntax keyword goNil          nil   contained
+syntax keyword goNil          nil
 
 " Highlighting
 
@@ -397,9 +397,9 @@ syntax match  goPointer /*/ contained nextgroup=@goType
 " e.g. the func type in the slice literal `[](func (a, b int) bool){ ... }`
 syntax region goTypeParens start='(' end=')' contained contains=@goType,goComment
 
-syntax keyword goTypeDecl     type              skipwhite skipempty nextgroup=goTypeDeclName,goTypeDeclGroup
-syntax match   goTypeDeclName /\K\k*/ contained skipwhite skipempty nextgroup=goTypeDeclTypeParams,goTypeAssign,@goType
-syntax match   goTypeAssign   /=/     contained skipwhite           nextgroup=@goType
+syntax keyword goTypeDecl     type              skipwhite skipnl nextgroup=goTypeDeclName,goTypeDeclGroup
+syntax match   goTypeDeclName /\K\k*/ contained skipwhite skipnl nextgroup=goTypeDeclTypeParams,goTypeAssign,@goType
+syntax match   goTypeAssign   /=/     contained skipwhite        nextgroup=@goType
 
 syntax region goTypeDeclGroup      matchgroup=goTypeDeclGroupParens start='('  end=')'  contained contains=goTypeDeclName,goComment
 syntax region goTypeDeclTypeParams matchgroup=goTypeParamBrackets   start='\[' end='\]' contained contains=goTypeParam,goComma,goComment nextgroup=@goType
@@ -613,13 +613,13 @@ call s:HiConfig('goStructTypeField',    ['go_highlight_struct_type_fields'], #{d
 
 " Builtins {{{
 
-syntax keyword goBuiltins append cap close complex copy delete imag len panic print println real recover contained skipwhite nextgroup=goFuncCallArgs
+syntax keyword goBuiltins append cap close complex copy delete imag len panic print println real recover skipwhite nextgroup=goFuncCallArgs
 
-syntax keyword goMakeBuiltin make contained skipwhite nextgroup=goMakeBlock
+syntax keyword goMakeBuiltin make skipwhite nextgroup=goMakeBlock
 syntax region  goMakeBlock   matchgroup=goFuncCallParens start='(' end=')' contained contains=@goType,goMakeArguments,goComment
 syntax region  goMakeArguments start=',' end='\ze)' contained contains=@goExpr,gComment
 
-syntax keyword goNewBuiltin new contained skipwhite nextgroup=goNewBlock
+syntax keyword goNewBuiltin new skipwhite nextgroup=goNewBlock
 syntax region  goNewBlock   matchgroup=goFuncCallParens start='(' end=')' contained contains=@goType,goComment
 
 hi link goBuiltins    Special
