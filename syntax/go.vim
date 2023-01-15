@@ -402,7 +402,7 @@ syntax match   goTypeDeclName /\K\k*/ contained skipwhite skipnl nextgroup=goTyp
 syntax match   goTypeAssign   /=/     contained skipwhite        nextgroup=@goType
 
 syntax region goTypeDeclGroup      matchgroup=goTypeDeclGroupParens start='('  end=')'  contained contains=goTypeDeclName,goComment
-syntax region goTypeDeclTypeParams matchgroup=goTypeParamBrackets   start='\[' end='\]' contained contains=goTypeParam,goComma,goComment nextgroup=@goType
+syntax region goTypeDeclTypeParams matchgroup=goTypeParamBrackets   start='\[' end='\]' contained contains=goTypeParam,goComma,goComment skipwhite skipnl nextgroup=@goType
 
 " goNonPrimitiveType is used for matching the names and packages of
 " non-primitive types (i.e. types other than int, bool, string, etc.). Note the
