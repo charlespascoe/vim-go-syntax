@@ -9,6 +9,9 @@
       functions in 0.2.1. It's not possible to reconcile these two things, and
       so type conversion was preferred and a caveat for the function
       highlighting was added to the readme.
+- Fix `\\` in rune literal
+- Fix matching certain syntax elements not matching at all outside of functions
+- Fix type highlighting after type parameters in type definitions
 
 ## Version 0.2.2 - 2023/01/01
 
