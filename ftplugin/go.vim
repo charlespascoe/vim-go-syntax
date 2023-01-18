@@ -37,6 +37,11 @@ fun! s:FindAllPackageNames()
     for l:import in l:imports
         if l:import =~ '^"'
             let l:path = split(substitute(l:import, '"', '', 'g'), '/')
+
+            if len(l:path) == 0
+                continue
+            endif
+
             let l:last = l:path[len(l:path) - 1]
             call add(l:packages, split(l:last, '\.')[0])
         elseif trim(l:import) != ''

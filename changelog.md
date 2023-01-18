@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Fixing error message when there's an empty import string
 - Fix clash with vim-go's Godoc syntax
 - Fixed slice type conversion, e.g. `[]byte("foo")`
     - This was caused by trying to improve support for slice literals of
