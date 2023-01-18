@@ -229,9 +229,9 @@ Summary of options (see below table for descriptions):
 - Structs literals (`MyStruct{...}`) can't have a space between the name and the
   braces, despite the fact that Go permits this.
 - Type conversion (`MyType(someVal)`) is highlighted like a function call
-- A slice literal whose type is a function with multiple return values and the
-  type is not in parentheses (e.g. `[]func(a, b int) (c, d Foo){ f1, f2, f3 }`)
-  is technically valid Go code, but the `Foo` type will not be highlighted
+- A slice or map literal whose type is a function with multiple return values
+  and the type is not in parentheses (e.g. `[]func(a, b int) (c, d Foo){ f1, f2,
+  f3 }`) is technically valid Go code, but the `Foo` type will not be highlighted
   correctly.
     - This can easily be avoided by wrapping the type in parentheses to make it
       clear (e.g. `[](func(a, b int) (c, d Foo)){ f1, f2, f3 }`, which is
