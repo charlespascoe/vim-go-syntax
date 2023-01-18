@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- Add support for highlighting typeless structs in map literals
+
 ### Fixed
 
+- Fix map literal brace highlighting, including issues with variable names as
+  keys being highlighted as labels
 - Fixing error message when there's an empty import string
 - Fix clash with vim-go's Godoc syntax
 - Fixed slice type conversion, e.g. `[]byte("foo")`

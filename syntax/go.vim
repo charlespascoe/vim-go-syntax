@@ -190,7 +190,7 @@ call s:HiConfig('goGenerateComment', ['go_highlight_generate_tags'], #{offgroup:
 
 " Literals {{{
 
-syntax cluster goLiteral contains=goString,goRawString,goInvalidRuneLiteral,goNumberLeader,goBooleanTrue,goBooleanFalse,goNil,goSliceOrArrayLiteral,goPrimitiveTypes,goStructType,goInterfaceType,goMap,goSliceOrArrayLiteral
+syntax cluster goLiteral contains=goString,goRawString,goInvalidRuneLiteral,goNumberLeader,goBooleanTrue,goBooleanFalse,goNil,goSliceOrArrayLiteral,goPrimitiveTypes,goStructType,goInterfaceType,goMapLiteral,goSliceOrArrayLiteral
 
 " Strings
 
@@ -389,7 +389,7 @@ hi link goImportParens goParens
 
 " Types {{{
 
-syntax cluster goType contains=goPrimitiveTypes,goFuncType,goStructType,goInterfaceType,goMap,goSliceOrArrayType,goChannel,goNonPrimitiveType,goPointer,goTypeParens
+syntax cluster goType contains=goPrimitiveTypes,goFuncType,goStructType,goInterfaceType,goMapType,goSliceOrArrayType,goChannel,goNonPrimitiveType,goPointer,goTypeParens
 
 syntax match  goPointer /*/ contained nextgroup=@goType
 
@@ -419,8 +419,14 @@ syntax match  goFuncType /func\s*(/ contained contains=goFuncTypeParens skipwhit
 syntax region goFuncTypeParens          matchgroup=goFuncParens            start='(' end=')' contained contains=goFuncTypeParam,goComma,goComment
 syntax region goFuncTypeMultiReturnType matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma,goComment
 
-syntax keyword goMap map contained skipwhite skipempty nextgroup=goMapKeyType
-syntax region  goMapKeyType matchgroup=goMapBrackets start='\[' end='\]' contained contains=@goType skipwhite nextgroup=@goType
+syntax keyword goMapType map contained skipwhite skipempty nextgroup=goMapTypeKeyType
+syntax region  goMapTypeKeyType matchgroup=goMapBrackets start='\[' end='\]' contained contains=@goType skipwhite nextgroup=@goType
+
+syntax keyword goMapLiteral map contained skipwhite skipempty nextgroup=goMapLiteralKeyType
+syntax region  goMapLiteralKeyType matchgroup=goMapBrackets start='\[' end='\]' contained contains=@goType skipwhite nextgroup=goMapLiteralValueType
+" See comment for goSliceOrArrayLiteralType, which serves the same function as goMapLiteralValueType
+syntax region  goMapLiteralValueType start='\S' end='\ze[{(]\|$' contained contains=goSliceMapLiteralTypeMatch skipwhite skipnl nextgroup=goMapLiteralItems
+syntax region  goMapLiteralItems matchgroup=goMapBraces start='{' end='}' contained contains=goStructLiteralBlock,@goExpr
 
 syntax match goSliceOrArrayType /\[\%(\d\+\|\.\.\.\)\?\]/ contained contains=goNumber,goDot skipwhite nextgroup=@goType
 
@@ -430,11 +436,11 @@ syntax match goSliceOrArrayLiteral /\k\@1<!\[[0-9.]*\]\ze\%(\*\|\K\|\[\|(\)/ con
 " goSliceOrArrayLiteralType allows matching complex types for slice literals
 " such as a slice of functions without parentheses, e.g. "[]func(a, b Foo) Bar {
 " f1, f2, f3 }", which is technically valid, albeit hard to read. The use of a
-" region allows the contained matches (goSliceLiteralTypeMatch) to extend the
+" region allows the contained matches (goSliceMapLiteralTypeMatch) to extend the
 " region as necessary, allowing the type to contain braces, such as "[]struct{X,
 " Y int}{ ... }"
-syntax region goSliceLiteralType start='\S' end='\ze[{(]\|$' contained contains=goSliceLiteralTypeMatch skipwhite skipnl nextgroup=goSliceItems
-syntax match  goSliceLiteralTypeMatch /(\|\%(\%(interface\|struct\)\s*{\|[^{(]\)\+/ contained contains=@goType
+syntax region goSliceLiteralType start='\S' end='\ze[{(]\|$' contained contains=goSliceMapLiteralTypeMatch skipwhite skipnl nextgroup=goSliceItems
+syntax match  goSliceMapLiteralTypeMatch /(\|\%(\%(interface\|struct\)\s*{\|[^{(]\)\+/ contained contains=@goType
 
 syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=goStructLiteralBlock,@goExpr
 
@@ -456,11 +462,13 @@ hi link goPackageName         Special
 
 hi link goNonPrimitiveType    Type
 hi link goPrimitiveTypes      Type
-hi link goMap                 goPrimitiveTypes
+hi link goMapType             goPrimitiveTypes
+hi link goMapLiteral          goPrimitiveTypes
 hi link goMapBrackets         Delimiter
 hi link goSliceOrArrayLiteral Delimiter
 hi link goSliceOrArrayType    goSliceOrArrayLiteral
 hi link goSliceBraces         goBraces
+hi link goMapBraces           goBraces
 hi link goChannel             Type
 hi link goChannelDir          goOperator
 
