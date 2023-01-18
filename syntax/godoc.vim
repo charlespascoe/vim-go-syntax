@@ -1,5 +1,15 @@
-" Add syntax highlighting to vim-go documentation
+" Author:    Charles Pascoe
+" License:   MIT (see LICENSE)
+" Copyright: 2022 Charles Pascoe
+" Syntax highlighting for vim-go godoc buffers
+
+if exists("b:current_syntax") && !get(g:, "go_highlight_override_existing_syntax", 1)
+    finish
+endif
+
 syntax clear
+
+let b:current_syntax = 'godoc'
 
 let main_syntax = 'godoc'
 syntax include @go syntax/go.vim
@@ -30,5 +40,3 @@ hi link godocReceiverParens     goReceiverParens
 hi link godocField              Keyword
 hi link godocFieldIdentifier    Identifier
 hi link godocMethodDot          goDot
-
-let b:current_syntax = 'godoc'
