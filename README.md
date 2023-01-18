@@ -1,14 +1,15 @@
-# Fast, IDE-like Vim Syntax Highlighting for Go
+# Fast, 'tree-sitter'-like Vim Syntax Highlighting for Go
 
-`vim-go-syntax` provides fast, IDE-like Vim syntax highlighting for Go.
+`vim-go-syntax` provides fast and feature-rich Vim syntax highlighting for Go,
+with results comparable to tree-sitter in Neovim.
 
 > **Feedback is welcome!** This syntax is still fairly new and I'd like feedback
 > or issues to improve it. Please see if there's already an issue open or create
 > a new one.
 
 Syntax highlighting can make reading code easier by using colour to convey
-additional information. Existing Vim syntax definitions for Go are OK, but fail
-to correctly highlight useful parts of the syntax, which motivated me to write
+additional information. Existing Vim syntax definitions aren't able to to
+correctly highlight key parts of the syntax, which motivated me to write
 `vim-go-syntax` from the ground up using the Go language specification. Not only
 does it fix many of the shortfalls of existing syntax definitions, it's more
 than 2x faster even with _all_ features enabled!
@@ -240,6 +241,5 @@ Summary of options (see below table for descriptions):
 
 ## What's Next
 
-- [ ] Syntax Folding
 - [ ] Possibly integrate with `vim-go` to get actual type information to
   highlight things like type conversion correctly
