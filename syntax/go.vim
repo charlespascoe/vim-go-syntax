@@ -173,15 +173,15 @@ call s:HiConfig('goSemicolon', ['go_highlight_semicolon'], #{default: 0})
 
 " Comments {{{
 
-syntax region  goComment start=+//+  end=+$+   contains=@goCommentSpell,goCommentTodo keepend
+syntax region  goComment start=+//+  end=+$+   contains=@goCommentSpell,goCommentTodo,goDirectiveComment keepend
 syntax region  goComment start=+/\*+ end=+\*/+ contains=@goCommentSpell,goCommentTodo keepend
 
-syntax keyword goCommentTodo     contained TODO FIXME XXX TBD NOTE
-syntax region  goGenerateComment start=+//go:generate+ end=+$+ contained containedin=goComment
+syntax keyword goCommentTodo      contained TODO FIXME XXX TBD NOTE
+syntax region  goDirectiveComment start=+//\(line \|extern \| export\|[a-z0-9]\+:[a-z0-9]\+\)+ end=+$+ contained
 
-hi link goCommentTodo     Todo
-hi link goComment         Comment
-hi link goGenerateComment PreProc
+hi link goComment          Comment
+hi link goCommentTodo      Todo
+hi link goDirectiveComment PreProc
 
 call s:HiConfig('goGenerateComment', ['go_highlight_generate_tags'], #{offgroup: 'goComment'})
 
