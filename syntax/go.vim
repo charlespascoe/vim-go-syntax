@@ -210,9 +210,9 @@ syntax region goRawString matchgroup=goRawStringEnds start='`' end='`' keepend
 
 " Numbers
 
-" 'goNumberZeroLeader' searches for a digit so that various goNumber patterns
+" 'goNumberZeroLeader' searches for a digit so that the various number patterns
 " don't have to, improving match performance
-syntax match goNumberLeader      /\ze\<[0-9]/ nextgroup=goNumber
+syntax match goNumberLeader      /\ze\<[0-9]/ nextgroup=goNumber,goNumberTypeBinary,goNumberTypeOctal,goNumberTypeHex
 syntax match goNumberLeader      /\ze\.[0-9]/ nextgroup=goNumber
 
 " TODO: Highlight all forms of invalid number formatting? E.g. underscores in
@@ -221,13 +221,17 @@ syntax match goNumberLeader      /\ze\.[0-9]/ nextgroup=goNumber
 syntax match goNumber /\v<[0-9][0-9_]*%(\.[0-9_]*)?%([eE][-+]?[0-9][0-9_]*)?i?/ contained contains=goNumberDecimalExp
 syntax match goNumber /\v\.[0-9][0-9_]*%([eE][-+]?[0-9][0-9_]*)?i?/             contained contains=goNumberDecimalExp
 
-syntax match goNumber /\c0b[01_]\+/  contained
-syntax match goNumber /\c0o[0-7_]\+/ contained
-syntax match goNumber /\v\c0x[0-9a-f_]*%(\.[0-9a-f_]*)?%([pP][-+]?[0-9a-f][0-9a-f_]*)?i?/ contained contains=goNumberHexExp
+syntax match goNumberTypeBinary  /\c0b/        contained nextgroup=goNumberBinary
+syntax match goNumberBinary      /[01_]\+i\?/  contained
 
-syntax match goNumberSpecialChar /[_i]/       contained containedin=goNumber
-syntax match goNumberType        /\c0[box]/   contained containedin=goNumber
-syntax match goNumberError       /_\{2,\}/    contained containedin=goNumber
+syntax match goNumberTypeOctal   /\c0o/        contained nextgroup=goNumberOctal
+syntax match goNumberOctal       /[0-7_]\+i\?/ contained
+
+syntax match goNumberTypeHex     /\c0x/        contained nextgroup=goNumberHex
+syntax match goNumberHex         /\v\c[0-9a-f_]*%(\.[0-9a-f_]*)?%([pP][-+]?[0-9a-f][0-9a-f_]*)?i?/ contained contains=goNumberHexExp
+
+syntax match goNumberSpecialChar /[_i]/       contained containedin=goNumber,goNumberBinary,goNumberOctal,goNumberHex
+syntax match goNumberError       /_\{2,\}/    contained containedin=goNumber,goNumberBinary,goNumberOctal,goNumberHex
 
 " Exponent markers
 syntax match goNumberDecimalExp  /\ce/        contained
@@ -255,7 +259,13 @@ hi link goRawString          String
 hi link goRawStringEnds      goRawString
 
 hi link goNumber             Number
+hi link goNumberBinary       goNumber
+hi link goNumberOctal        goNumber
+hi link goNumberHex          goNumber
 hi link goNumberType         SpecialChar
+hi link goNumberTypeBinary   goNumberType
+hi link goNumberTypeOctal    goNumberType
+hi link goNumberTypeHex      goNumberType
 hi link goNumberError        Error
 hi link goNumberDecimalExp   SpecialChar
 hi link goNumberHexExp       goNumberDecimalExp
