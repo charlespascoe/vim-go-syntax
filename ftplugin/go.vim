@@ -1,11 +1,12 @@
 fun! s:FindAllImports()
     let l:winview = winsaveview()
-    let l:pos = getpos('.')
     let l:imports = []
 
     keepjumps normal gg
 
     let l:import_line = search('^import\s\+($', 'W')
+
+    " TODO: Check both, not just one?
 
     if l:import_line != 0
         keepjumps normal $
@@ -15,12 +16,11 @@ fun! s:FindAllImports()
             let l:imports = getbufline(bufnr('%'), line('.')+1, l:end_import_line-1)
         end
     else
-        " TODO: Check both, not just one?
-        let l:import_line = search('^import\s\+[^(]$', 'W')
+        let l:import_line = search('^import\s\+[^(]', 'W')
 
         while l:import_line != 0
             call add(l:imports, getline('.')[len("import"):])
-            let l:import_line = search('^import\s\+[^(]$', 'W')
+            let l:import_line = search('^import\s\+[^(]', 'W')
         endwhile
     end
 
@@ -43,6 +43,13 @@ fun! s:FindAllPackageNames()
             endif
 
             let l:last = l:path[len(l:path) - 1]
+
+            " Ignore version path suffix (e.g. example.com/foo/v2)
+            if l:last =~ '^v\d\+$' && len(l:path) > 1
+                let l:last = l:path[len(l:path) - 2]
+            endif
+
+            " split() is used to strip version suffix (e.g. example.com/foo.v2)
             call add(l:packages, split(l:last, '\.')[0])
         elseif trim(l:import) != ''
             let first = split(l:import, ' ')[0]
