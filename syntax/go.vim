@@ -533,8 +533,12 @@ syntax region goMethodReceiver  matchgroup=goReceiverParens        start='(' end
 
 GoFoldFunc syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained contains=@goStatement skipwhite nextgroup=goFuncCallArgs
 
-syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType,goVariadic
-syntax match goNamedReturnValue /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
+" syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType,goVariadic
+" syntax match goNamedReturnValue /\%(^\|[(,]\)\@1<=\s*\zs\%(\K\k*\%(\s*,\%(\s\|\n\)*\K\k*\)*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
+" TODO: Test the performance of the reordering plus the new 'chan' section;
+" might need to resort to short lookbehind after the match is complete
+syntax match goFuncTypeParam    /\%(^\|[(,]\)\@1<=\s*\zs\%(\%(\K\k*\s*,\%(\s\|\n\)*\)*\%(chan\>\)\@!\K\k*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType,goVariadic
+syntax match goNamedReturnValue /\%(^\|[(,]\)\@1<=\s*\zs\%(\%(\K\k*\s*,\%(\s\|\n\)*\)*\%(chan\>\)\@!\K\k*\s\+\)\?\ze[^,]/ contained contains=goComma skipwhite nextgroup=@goType
 
 syntax keyword goReturn return contained
 
