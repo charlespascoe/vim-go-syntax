@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Properly handle explicit argument indexes for width and precision in string
+  format sequences
+    - E.g. `%0[1]*[2]b` and `%[1]*d`
+
+
 ## Version 0.3.0 - 2023/01/18
 
 ### Added
