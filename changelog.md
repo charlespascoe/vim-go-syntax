@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add folding for interface and declaration blocks
+
 ### Fixed
 
 - Properly handle explicit argument indexes for width and precision in string

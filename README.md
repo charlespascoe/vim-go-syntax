@@ -221,6 +221,20 @@ Summary of options (see below table for descriptions):
       applies to short variable declarations (i.e. `:=`) unless
       `g:go_highlight_short_variable_declarations` is set.
 
+Other configuration options:
+
+- `g:go_fold_decl_blocks` (default: 1)
+    - Fold `var` and `const` declaration blocks.
+- `g:go_fold_function_blocks` (default: 1)
+    - Fold function blocks.
+- `g:go_fold_struct_blocks` (default: 1)
+    - Fold struct blocks.
+- `g:go_fold_interface_blocks` (default: 1)
+    - Fold interface blocks.
+- `g:go_syntax_fold` (default: 1)
+    - Global fold setting. If set to 0, all folding is disabled. If set to 1,
+      each respective `g:go_fold_*` option is used.
+
 ## Caveats
 
 - Type arguments to types and functions are limited to at most three nested

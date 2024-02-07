@@ -19,8 +19,6 @@ syntax sync fromstart
 " TODO: Check UTF-16
 syntax iskeyword @,48-57,_,192-255
 
-" TODO: Syntax Folding
-
 " TODO: Check performance of lookbehinds
 " TODO: Check correct use of 'skipempty'
 
@@ -85,7 +83,7 @@ endif
 
 
 " TODO: Rethink this approach (use string/array approach)
-if s:getconfig(['g:go_fold_function_blocks', 'go_syntax_fold'], 1)
+if s:getconfig(['go_fold_function_blocks', 'go_syntax_fold'], 1)
     com! -nargs=* GoFoldFunc <args> fold
 else
     com! -nargs=* GoFoldFunc <args>
@@ -94,13 +92,31 @@ endif
 GoDeferCleanup delcom GoFoldFunc
 
 
-if s:getconfig(['g:go_fold_struct_blocks', 'go_syntax_fold'], 1)
+if s:getconfig(['go_fold_struct_blocks', 'go_syntax_fold'], 1)
     com! -nargs=* GoFoldStruct <args> fold
 else
     com! -nargs=* GoFoldStruct <args>
 endif
 
 GoDeferCleanup delcom GoFoldStruct
+
+
+if s:getconfig(['go_fold_interface_blocks', 'go_syntax_fold'], 1)
+    com! -nargs=* GoFoldInterface <args> fold
+else
+    com! -nargs=* GoFoldInterface <args>
+endif
+
+GoDeferCleanup delcom GoFoldInterface
+
+
+if s:getconfig(['go_fold_decl_blocks', 'go_syntax_fold'], 1)
+    com! -nargs=* GoFoldDecl <args> fold
+else
+    com! -nargs=* GoFoldDecl <args>
+endif
+
+GoDeferCleanup delcom GoFoldDecl
 
 " }}} Config Utils
 
@@ -315,8 +331,8 @@ syntax keyword goVarDecl   var   skipwhite skipnl nextgroup=goVarIdentifier,goVa
 " syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=@goExpr,goComment,goSemicolon,goVarGroupIdentifier
 " syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=@goExpr,goComment,goSemicolon,goVarGroupIdentifier,goIota
 
-syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=@goExpr,goSemicolon,goVarIdentifier
-syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=@goExpr,goSemicolon,goVarIdentifier,goIota
+GoFoldDecl syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=@goExpr,goSemicolon,goVarIdentifier
+GoFoldDecl syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=@goExpr,goSemicolon,goVarIdentifier,goIota
 
 " TODO: Is it worth supporting comments in goVarComma??
 syntax match goVarIdentifier /\<\K\k*/ contained skipwhite        nextgroup=goVarComma,@goType
@@ -604,7 +620,7 @@ syntax match   goStructLiteralField /\<\K\k*\ze:/ contained nextgroup=goStructLi
 syntax match   goStructLiteralColon /:/           contained
 
 syntax keyword goInterfaceType interface contained skipwhite skipempty nextgroup=goInterfaceBlock
-syntax region  goInterfaceBlock matchgroup=goInterfaceBraces start='{' end='}' contained contains=@goType,goTypeConstraintSymbols,goInterfaceMethod,goComment extend
+GoFoldInterface syntax region  goInterfaceBlock matchgroup=goInterfaceBraces start='{' end='}' contained contains=@goType,goTypeConstraintSymbols,goInterfaceMethod,goComment extend
 
 syntax match   goInterfaceMethod            /\K\k*\ze(/ contained skipwhite nextgroup=goInterfaceMethodParams
 syntax region  goInterfaceMethodParams      matchgroup=goInterfaceMethodParens start='(' end=')' contained contains=goFuncTypeParam,goComma,goComment skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
