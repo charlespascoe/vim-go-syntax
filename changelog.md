@@ -22,6 +22,10 @@
     - E.g. in `func Something() (bool, chan int) { ... }`, `bool` and `chan`
       would be highlighted as though they were return variables of type `int`,
       and similarly in `type Something func(bool, chan int)`.
+- Fix `iota` in `const` declaration blocks.
+    - The compromise is that iota is matched in any expression. While not ideal,
+      this avoids complex restructuring of the syntax code or performance
+      degradation. It may be worth revisiting this at some point.
 
 
 ## Version 0.3.0 - 2023/01/18

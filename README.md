@@ -262,6 +262,9 @@ Other configuration options:
       highlighted correctly), or preferably use a named type to make the code
       easier to read (e.g. `type MyFunc func(a, b int) (c, d Foo)`, and then use
       `[]MyFunc{ f1, f2, f3 }`, all of which will be highlighted correctly).
+- `iota` is matched in any expression. While not ideal, this currently avoids
+  complex restructuring of the syntax code or performance degradation. It may be
+  worth revisiting this at some point.
 
 ## What's Next
 

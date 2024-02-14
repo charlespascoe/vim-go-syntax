@@ -125,7 +125,11 @@ GoDeferCleanup delcom GoFoldDecl
 
 " Two top-level clusters to allow regions to specify what syntax they can
 " contain
-syntax cluster goExpr      contains=@goLiteral,goForRange,goDotExpr,goFuncLiteral,goCommaExpr,goOperator,goWordStart,goParenBlock,goBracketBlock,goComment
+" NOTE: goIota technically shouldn't be here (it should only be a part of a
+" const declaration group), but trying to get it to appear only in
+" goConstDeclGroup would require compromising the performance of the current
+" implementation or duplicating goExpr just for goConstDeclGroup.
+syntax cluster goExpr      contains=@goLiteral,goForRange,goDotExpr,goFuncLiteral,goCommaExpr,goOperator,goWordStart,goParenBlock,goBracketBlock,goComment,goIota
 syntax cluster goStatement contains=@goExpr,@goFlowControl,goReturn,goSemicolon,goBraceBlock,goStatementStart,goConstDecl,goVarDecl,goTypeDecl,goKeywords
 
 " 'goWordStart' reduces the number of times each of the 'nextgroups' is checked,
@@ -337,7 +341,7 @@ syntax keyword goVarDecl   var   skipwhite skipnl nextgroup=goVarIdentifier,goVa
 " syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=@goExpr,goComment,goSemicolon,goVarGroupIdentifier,goIota
 
 GoFoldDecl syntax region goVarDeclGroup   matchgroup=goVarDeclParens   start='(' end=')' contained contains=@goExpr,goSemicolon,goVarIdentifier
-GoFoldDecl syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=@goExpr,goSemicolon,goVarIdentifier,goIota
+GoFoldDecl syntax region goConstDeclGroup matchgroup=goConstDeclParens start='(' end=')' contained contains=@goExpr,goSemicolon,goVarIdentifier
 
 " TODO: Is it worth supporting comments in goVarComma??
 syntax match goVarIdentifier /\<\K\k*/ contained skipwhite        nextgroup=goVarComma,@goType
