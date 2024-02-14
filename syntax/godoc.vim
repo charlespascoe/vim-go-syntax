@@ -17,7 +17,7 @@ unlet main_syntax
 
 syntax match godocTypeLine /^\%1l.*$/ contains=@godocType,@go
 
-syntax cluster godocType contains=godocUntyped,goVarDecl,goConstDecl,goTypeDecl,goPackage,godocFuncDecl,godocField,godocVarConst
+syntax cluster godocType contains=godocTypeDecl,godocUntyped,goVarDecl,goConstDecl,goTypeDecl,goPackage,godocFuncDecl,godocField,godocVarConst
 
 syntax match  godocFuncDecl                  /^func\ze\s*\%(\%(\K\k*\.\)\?\K\k*\)\?(/ skipwhite nextgroup=godocFuncDeclPackage,goFuncName,godocReceiverBlock
 syntax match  godocFuncDeclPackage     contained /\K\k*\ze\.\K\k*/ contains=goPackageName nextgroup=godocMethodDot
@@ -27,11 +27,14 @@ syntax match  godocMethodDot           contained /\./ nextgroup=goFuncName
 syntax keyword godocField              contained field   skipwhite nextgroup=godocFieldIdentifier
 syntax match   godocFieldIdentifier    contained /\K\k*/ skipwhite nextgroup=@goType
 
+syntax keyword godocTypeDecl           contained type                  skipwhite skipnl nextgroup=goTypeDeclName,goTypeDeclGroup,godocTypeParameterDecl
+syntax keyword godocTypeParameterDecl  contained parameter             skipwhite skipnl nextgroup=goTypeDeclName
 syntax keyword godocVarConst           contained var const             skipwhite nextgroup=godocVarConstIdentifier
 syntax keyword godocUntyped            contained untyped               skipwhite nextgroup=@goType
 syntax match   godocVarConstIdentifier contained /\K\k*\%(\.\K\k*\)\?/ contains=goPackageName skipwhite nextgroup=@goType
 
-
+hi link godocTypeDecl           goTypeDecl
+hi link godocTypeParameterDecl  goTypeDecl
 hi link godocUntyped            Type
 hi link godocVarConst           goVarDecl
 hi link godocVarConstIdentifier goVarIdentifier
