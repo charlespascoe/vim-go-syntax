@@ -451,7 +451,7 @@ syntax keyword goPrimitiveTypes any bool byte complex128 complex64 error float32
 
 syntax match  goFuncType /func\s*(/ contained contains=goFuncTypeParens skipwhite nextgroup=@goType,goFuncTypeMultiReturnType
 
-syntax region goFuncTypeParens          matchgroup=goFuncParens            start='(' end=')' contained contains=goFuncParam,@goType,goComma,goComment
+syntax region goFuncTypeParens          matchgroup=goFuncParens            start='(' end=')' contained contains=goFuncParam,goComma,goComment
 syntax region goFuncTypeMultiReturnType matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma,goComment
 
 syntax keyword goMapType map contained skipwhite skipempty nextgroup=goMapTypeKeyType
@@ -548,9 +548,9 @@ syntax match  goTypeConstraintSymbols /[~|]/ contained
 " goFuncMultiReturn); look into this further and try to remove this.
 syntax match  goFuncReturnType  /\s*\zs(\@1<!\%(\%(interface\|struct\)\s*{\|[^{]\)\+/ contained contains=@goType skipwhite skipempty nextgroup=goFuncBlock
 
-syntax region goFuncParams      matchgroup=goFuncParens            start='(' end=')' contained contains=goFuncParam,@goType,goComma,goComment skipwhite           nextgroup=goFuncReturnType,goFuncMultiReturn,goFuncBlock
+syntax region goFuncParams      matchgroup=goFuncParens            start='(' end=')' contained contains=goFuncParam,goComma,goComment skipwhite           nextgroup=goFuncReturnType,goFuncMultiReturn,goFuncBlock
 syntax region goFuncMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma,goComment  skipwhite skipempty nextgroup=goFuncBlock
-syntax region goMethodReceiver  matchgroup=goReceiverParens        start='(' end=')' contained contains=goFuncParam,@goType,goComment         skipwhite skipempty nextgroup=goFuncName
+syntax region goMethodReceiver  matchgroup=goReceiverParens        start='(' end=')' contained contains=goFuncParam,goComment         skipwhite skipempty nextgroup=goFuncName
 
 GoFoldFunc syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' contained contains=@goStatement skipwhite nextgroup=goFuncCallArgs
 
@@ -564,22 +564,20 @@ GoFoldFunc syntax region goFuncBlock matchgroup=goFuncBraces start='{' end='}' c
 " ')\@1<=' didn't work for some reason (i.e. when typing a parameter name, it
 " was highlighted as a type).
 "
-" TODO: Performance: Figure out how to remove the need for @goType every time
-" goFuncParam is used. This would require this regex to have a zero-length
-" match when it's just the type.
-"
 " goFuncParam: Assume the user is typing a parameter name (i.e. avoid
 " highlighting parameter names as types until proven otherwise).
-syntax match goFuncParam        /\%(^\|[(,]\)\@1<=\s*\zs\%(\%(\K\k*\s*,\%(\s\|\n\)*\)*\%(chan\>\)\@!\K\k*\)\%(\s*,\?\%(\s\|\n\)*\%#\ze)\|\s\+\ze[^,]\)/ contained contains=goComma,goUnderscore skipwhite nextgroup=@goType,goVariadic
-"                                └──────────────────┘   │          └──────────────┘  │└────────────┘         │└────────────────┘      │  │           │                                                                                 "
-"                               Param must be preceded  │            comma/ws/nl     │ 'chan' a type,        │   comma/ws/nl          │  │           │                                                                                 "
-"                               by start of line, '(',  │                            │ not param name        │                        │  │           │                                                                                 "
-"                                 or ',' followed by    └────────────────────────────┘                       └────────────────────────┘  └───────────┘                                                                                 "
-"                                     whitespace         zero or more previous params                         if this matches, then we    otherwise if this                                                                            "
-"                                                        (e.g. 'a, b, ' in 'a, b, c')                         have one or more params,     matches, we have                                                                            "
-"                                                                                                              then cursor, then close    params then type,                                                                            "
-"                                                                                                                   paren, e.g.:                e.g.:                                                                                  "
-"                                                                                                                   (a, b, c, |)              (a, b foo)                                                                               "
+"                                                                      conditional group allows skipping directly to type, e.g. func(SomeType)                                                                                              "
+"                                                       ┌───────────────────────────────────────────────────────────────────────────────────────────────────┐                                                                               "
+syntax match goFuncParam        /\%(^\|[(,]\)\@1<=\s*\zs\%(\%(\%(\K\k*\s*,\%(\s\|\n\)*\)*\%(chan\>\)\@!\K\k*\)\%(\s*,\?\%(\s\|\n\)*\%#\ze)\|\s\+\ze[^,]\)\)\?/ contained contains=goComma,goUnderscore skipwhite nextgroup=@goType,goVariadic
+"                                └──────────────────┘      │          └──────────────┘  │└────────────┘         │└────────────────┘      │  │           │                                                                                   "
+"                               Param must be preceded     │            comma/ws/nl     │ 'chan' a type,        │   comma/ws/nl          │  │           │                                                                                   "
+"                               by start of line, '(',     │                            │ not param name        │                        │  │           │                                                                                   "
+"                                 or ',' followed by       └────────────────────────────┘                       └────────────────────────┘  └───────────┘                                                                                   "
+"                                     whitespace            zero or more previous params                         if this matches, then we    otherwise if this                                                                              "
+"                                                           (e.g. 'a, b, ' in 'a, b, c')                         have one or more params,     matches, we have                                                                              "
+"                                                                                                                 then cursor, then close    params then type,                                                                              "
+"                                                                                                                      paren, e.g.:                e.g.:                                                                                    "
+"                                                                                                                      (a, b, c, |)              (a, b foo)                                                                                 "
 " The above diagrams can be found in the Monodraw file goFuncParam_Diagrams.monopic
 
 " goFuncParam: Assume the user is typing a type (i.e. avoid highlighting custom
@@ -649,7 +647,7 @@ syntax keyword goInterfaceType interface contained skipwhite skipempty nextgroup
 GoFoldInterface syntax region  goInterfaceBlock matchgroup=goInterfaceBraces start='{' end='}' contained contains=@goType,goTypeConstraintSymbols,goInterfaceMethod,goComment extend
 
 syntax match   goInterfaceMethod            /\K\k*\ze(/ contained skipwhite nextgroup=goInterfaceMethodParams
-syntax region  goInterfaceMethodParams      matchgroup=goInterfaceMethodParens start='(' end=')' contained contains=goFuncParam,@goType,goComma,goComment skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
+syntax region  goInterfaceMethodParams      matchgroup=goInterfaceMethodParens start='(' end=')' contained contains=goFuncParam,goComma,goComment skipwhite nextgroup=@goType,goInterfaceMethodMultiReturn
 syntax region  goInterfaceMethodMultiReturn matchgroup=goFuncMultiReturnParens start='(' end=')' contained contains=goNamedReturnValue,goComma,goComment
 
 hi link goStructType            Keyword
