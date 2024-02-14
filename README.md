@@ -240,6 +240,9 @@ Other configuration options:
 - Type arguments to types and functions are limited to at most three nested
   generic types, e.g. `val := Type1[Type2[Type3[Foo]]]{ ... }`. The number of
   arguments at each level is unlimited, e.g. `Type1[Type2[A, B, C, ...]]`
+- The type parameters of a generic type embedded within a struct (that is, the
+  `A,B,C` in `struct { Foo[A,B,C] }`) can't be spread across multiple lines,
+  though this is very uncommon in practical use.
 - Structs literals (`MyStruct{...}`) can't have a space between the name and the
   braces, despite the fact that Go permits this.
 - Type conversion (`MyType(someVal)`) is highlighted like a function call

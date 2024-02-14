@@ -604,7 +604,7 @@ syntax region  goStructTypeBlock matchgroup=goStructTypeBraces start='{' end='}'
 syntax region  goStructTypeTag   start='`'            end='`' contained
 syntax region  goStructTypeTag   start='"' skip='\\"' end='"' contained oneline
 syntax match   goStructTypeField /\%(_\|\K\k*\)\%(,\s*\%(_\|\K\k*\)\)*/ contained contains=goComma,goUnderscore skipwhite nextgroup=@goType
-syntax match   goEmbeddedType    /\*\?\K\k*\%(\.\K\k*\)\?\%#\@1<!$/     contained contains=@goType
+syntax match   goEmbeddedType    /\*\?\K\k*\%(\.\K\k*\)\?\%(\[.*\]\)\?\%#\@1<!$/  contained contains=@goType
 
 " It is technically possible to have a space between a struct name and the
 " braces, but it's hard to reliably highlight

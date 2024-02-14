@@ -5,6 +5,8 @@
 ### Added
 
 - Add folding for interface and declaration blocks
+- Add support for embedded generic types in structs
+    - Caveat: The type parameters cannot be spread across multiple lines
 
 ### Fixed
 
