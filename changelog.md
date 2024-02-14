@@ -26,6 +26,8 @@
     - The compromise is that iota is matched in any expression. While not ideal,
       this avoids complex restructuring of the syntax code or performance
       degradation. It may be worth revisiting this at some point.
+- Fix issue with parentheses around slice type not being highlighted correctly.
+    - E.g. the first `)` in `([]int)(nil)` was not highlighted correctly.
 
 
 ## Version 0.3.0 - 2023/01/18

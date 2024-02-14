@@ -474,8 +474,8 @@ syntax match goSliceOrArrayLiteral /\k\@1<!\[[0-9.]*\]\ze\%(\*\|\K\|\[\|(\)/ con
 " region allows the contained matches (goSliceMapLiteralTypeMatch) to extend the
 " region as necessary, allowing the type to contain braces, such as "[]struct{X,
 " Y int}{ ... }"
-syntax region goSliceLiteralType start='\S' end='\ze[{(]\|$' contained contains=goSliceMapLiteralTypeMatch skipwhite skipnl nextgroup=goSliceItems
-syntax match  goSliceMapLiteralTypeMatch /(\|\%(\%(interface\|struct\)\s*{\|[^{(]\)\+/ contained contains=@goType
+syntax region goSliceLiteralType start='\S' end='\ze[{()]\|$' contained contains=goSliceMapLiteralTypeMatch skipwhite skipnl nextgroup=goSliceItems
+syntax match  goSliceMapLiteralTypeMatch /(\|\%(\%(interface\|struct\)\s*{\|[^{()]\)\+/ contained contains=@goType
 
 syntax region goSliceItems matchgroup=goSliceBraces start='{' end='}' contained contains=goStructLiteralBlock,@goExpr
 
