@@ -13,6 +13,7 @@
 - Properly handle explicit argument indexes for width and precision in string
   format sequences
     - E.g. `%0[1]*[2]b` and `%[1]*d`
+- Properly handle unnamed parameters in functions, e.g. `func Foo(MyType)`
 - Fix `chan` highlighting in multi return and function type parameters without names
     - E.g. in `func Something() (bool, chan int) { ... }`, `bool` and `chan`
       would be highlighted as though they were return variables of type `int`,
