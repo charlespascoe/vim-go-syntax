@@ -696,10 +696,12 @@ call s:HiConfig('goFuncCallParens', ['go_highlight_function_call_parens'])
 
 " Flow Control {{{
 
-syntax cluster goFlowControl contains=goIf,goElse,goFor,goForRange,goForKeywords,goSwitch,goCase,goSelect,goSwitchKeywords
+syntax cluster goFlowControl contains=goGoto,goIf,goElse,goFor,goForRange,goForKeywords,goSwitch,goCase,goSelect,goSwitchKeywords
 
 " 'goStatementStart' is used to avoid searching for 'goLabel' everywhere
 syntax match   goLabel           /\K\k*\ze:/ contained
+syntax keyword goGoto            goto        contained skipwhite nextgroup=goGotoLabel
+syntax match   goGotoLabel       /\K\k*/     contained
 
 syntax keyword goIf              if     contained skipwhite skipempty nextgroup=goShortVarDecl
 syntax keyword goElse            else   contained
@@ -718,6 +720,9 @@ syntax region  goSwitchTypeBlock matchgroup=goSwitchTypeBraces start='{' end='}'
 
 " goSwitchTypeBlockNestedBraces prevents goSwitchTypeCase from matching "case" in a regular nested switch statement
 syntax region  goSwitchTypeBlockNestedBraces matchgroup=goBraces start='{' end='}' contained contains=@goStatement
+
+hi link goGoto             Statement
+hi link goGotoLabel        goLabel
 
 hi link goIf               Conditional
 hi link goElse             goIf
