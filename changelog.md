@@ -8,6 +8,9 @@
 - Add support for embedded generic types in structs
     - Caveat: The type parameters cannot be spread across multiple lines
 - Add support for type parameter definitions in Godoc
+- Add option to highlight invalid format string indices (e.g. `%[0]d`).
+  Controlled by `g:go_highlight_format_string_errors`, which is disabled by
+  default.
 
 ### Fixed
 

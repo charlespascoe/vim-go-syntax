@@ -119,6 +119,8 @@ Summary of options (see below table for descriptions):
 | `g:go_highlight_comma`                       |   Disabled  | `Delimiter`   |
 | `g:go_highlight_dot`                         | **Enabled** | `Operator`    |
 | `g:go_highlight_fields`                      |   Disabled  | `Identifier`  |
+| `g:go_highlight_format_strings`              | **Enabled** | `SpecialChar` |
+| `g:go_highlight_format_string_errors`        |   Disabled  | `Error`       |
 | `g:go_highlight_functions`                   | **Enabled** | `Function`    |
 | `g:go_highlight_function_parens`             | **Enabled** | `Delimiter`   |
 | `g:go_highlight_function_braces`             | **Enabled** | `Delimiter`   |
@@ -159,6 +161,11 @@ Summary of options (see below table for descriptions):
 - `g:go_highlight_fields`
     - Fields in expressions, e.g. `bar` in
   `foo.bar = 123`
+- `g:go_highlight_format_strings`
+    - Format strings, e.g. `"Hello, %s"`.
+- `g:go_highlight_format_string_errors`
+    - Invalid format strings. Currently only zero index in format strings, e.g.
+      `fmt.Sprintf("%[0]d", 123)` which should be `fmt.Sprintf("%[1]d", 123)`.
 - `g:go_highlight_functions`
     - Function declaration names, e.g. `foo` in `func foo() { }`. Also applies
       to method names.
