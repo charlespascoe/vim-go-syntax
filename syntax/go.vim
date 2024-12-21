@@ -755,6 +755,56 @@ hi link goTypeAssertion Special
 
 " }}} Misc
 
+
+" Vim-Go Compatibility {{{
+
+" NOTE: The code in this section is a collection of verbatim extracts from
+" https://github.com/fatih/vim-go/blob/master/syntax/go.vim, included here to
+" ensure compatibility with vim-go's code coverage and debugging features. Refer
+" to https://github.com/fatih/vim-go/blob/master/LICENSE for details on vim-go's
+" source license.
+
+hi def link goSameId Search
+hi def link goDiagnosticError SpellBad
+hi def link goDiagnosticWarning SpellRare
+
+" TODO(bc): is it appropriate to define text properties in a syntax file?
+" The highlight groups need to be defined before the text properties types
+" are added, and when users have syntax enabled in their vimrc after
+" filetype plugin on, the highlight groups won't be defined when
+" ftplugin/go.vim is executed when the first go file is opened.
+" See https://github.com/fatih/vim-go/issues/2658.
+if has('textprop')
+    if empty(prop_type_get('goSameId'))
+        call prop_type_add('goSameId', {'highlight': 'goSameId'})
+    endif
+    if empty(prop_type_get('goDiagnosticError'))
+        call prop_type_add('goDiagnosticError', {'highlight': 'goDiagnosticError'})
+    endif
+    if empty(prop_type_get('goDiagnosticWarning'))
+        call prop_type_add('goDiagnosticWarning', {'highlight': 'goDiagnosticWarning'})
+    endif
+endif
+
+" :GoCoverage commands
+hi def link goCoverageNormalText Comment
+hi def      goCoverageCovered    ctermfg=green guifg=#A6E22E
+hi def      goCoverageUncover    ctermfg=red guifg=#F92672
+
+hi def link goDeclsFzfKeyword        Keyword
+hi def link goDeclsFzfFunction       Function
+hi def link goDeclsFzfSpecialComment SpecialComment
+hi def link goDeclsFzfComment        Comment
+
+" :GoDebug commands
+if exists('*go#config#HighlightDebug') && go#config#HighlightDebug()
+    hi def GoDebugBreakpoint term=standout ctermbg=117 ctermfg=0 guibg=#BAD4F5  guifg=Black
+    hi def GoDebugCurrent    term=reverse  ctermbg=12  ctermfg=7 guibg=DarkBlue guifg=White
+endif
+
+" }}} Vim-Go Compatibility
+
+
 call s:Cleanup()
 
 if !exists('main_syntax')
