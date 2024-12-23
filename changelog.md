@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.0.1 - 2024/12/23
+
+### Fixed
+
+- [#13](https://github.com/charlespascoe/vim-go-syntax/issues/13): Fix issue
+  that broke vim-go's `:GoCoverage` and other tools when this syntax was loaded
+  before vim-go.
+
 ## Version 1.0.0 - 2024/02/14
 
 ### Added
