@@ -374,7 +374,9 @@ hi link goIota               Special
 
 let s:assignOrShortDecl = 0
 
-syntax cluster goStatementStartGroup contains=goLabel
+" goStatementStart ideally shouldn't contain goSwitchKeywords, but the without
+" this, `default:` will be highlighted using `goLabel` instead of `goSwitchKeywords`.
+syntax cluster goStatementStartGroup contains=goLabel,goSwitchKeywords
 
 call s:HiConfig('goVarIdentifier', ['go_highlight_variable_declarations'])
 
