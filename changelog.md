@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 1.0.2 - 2025/06/21
+
+### Added
+
+- Add `min` and `max` built-in functions
+
+### Fixed
+
+- [#14](https://github.com/charlespascoe/vim-go-syntax/issues/14): Fix `default:` being highlighted using `goLabel` instead of `goSwitchKeywords`
+
 ## Version 1.0.1 - 2024/12/23
 
 ### Fixed
