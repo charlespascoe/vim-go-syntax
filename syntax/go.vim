@@ -677,7 +677,9 @@ call s:HiConfig('goStructTypeField',    ['go_highlight_struct_type_fields'], #{d
 
 " Builtins {{{
 
-syntax keyword goBuiltins append cap close complex copy delete imag len panic print println real recover skipwhite nextgroup=goFuncCallArgs
+" `make` and `new` are matched by `goMakeBuiltin` and `goNewBuiltin` so that the
+" paren block that follows can have custom highlighting for types
+syntax keyword goBuiltins append cap close complex copy delete imag len max min panic print println real recover skipwhite nextgroup=goFuncCallArgs
 
 syntax keyword goMakeBuiltin make skipwhite nextgroup=goMakeBlock
 syntax region  goMakeBlock   matchgroup=goFuncCallParens start='(' end=')' contained contains=@goType,goMakeArguments,goComment
